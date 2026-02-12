@@ -1,14 +1,15 @@
 # Project Overview
 
-This repository is a Java implementation related to Mastodon infrastructure.
+This repository is a Java implementation of the Mastodon federated social network with full web UI parity.
 
 Primary goals:
-- Migrate the project to Java 25
-- Upgrade to the latest stable Spring Boot version
-- Preserve all existing runtime behavior
-- Maintain backward compatibility at API boundaries
+- Full web UI parity with upstream Mastodon
+- API compatibility with Mastodon v4.5.6 (released 2026-02-03)
+- Java 25 and Spring Boot 4.x baseline
+- Postgres-only architecture (no Redis, no Elasticsearch)
+- Preserve federation behavior and API contracts
 
 Non-goals:
-- Feature development
-- Business logic changes
-- Performance tuning unless required for compatibility
+- Feature development beyond upstream parity
+- Introducing Redis or Elasticsearch
+- Breaking API contracts or changing serialization formats

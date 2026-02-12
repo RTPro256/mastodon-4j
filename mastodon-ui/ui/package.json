@@ -1,0 +1,11 @@
+{
+  "name": "mastodon-ui",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.js"
+  }
+}

@@ -85,18 +85,28 @@ cd mastodon-java
 # Verify Java version
 java --version  # Should show OpenJDK 25
 
-# Start PostgreSQL with Docker (Redis is optional)
-docker-compose up -d postgres
+# Start PostgreSQL with Docker
+docker-compose up -d
 
 # Build the project
-mvn clean install
+./mvnw clean install
+
+# Optional preflight (bash)
+./scripts/preflight.sh
+
+# Optional preflight (Windows)
+powershell -ExecutionPolicy Bypass -File .\\scripts\\preflight.ps1
+ 
+# Testcontainers note (Windows)
+# If DOCKER_HOST is set to the docker_cli pipe, Testcontainers will fail.
+# Unset it or set it to: npipe:////./pipe/docker_engine
 
 # Run the application
 cd mastodon-web
-mvn spring-boot:run
+../mvnw spring-boot:run
 ```
 
-**Note:** The original setup included Redis, but modern PostgreSQL can handle caching and pub/sub messaging. Start with PostgreSQL-only and add Redis later if performance testing shows it's beneficial.
+**Note:** This project targets a Postgres-only architecture. Use PostgreSQL features for caching and pub/sub unless performance testing proves otherwise.
 
 ## 3. Database Configuration
 
@@ -122,12 +132,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   
-  # Redis configuration (optional - comment out if not using)
-  # data:
-  #   redis:
-  #     host: localhost
-  #     port: 6379
-  
   security:
     oauth2:
       resourceserver:
@@ -143,9 +147,9 @@ logging:
     org.springframework.web: INFO
 ```
 
-**Alternative: Using PostgreSQL for Caching**
+**Using PostgreSQL for Caching**
 
-If not using Redis, you can use PostgreSQL features:
+Use PostgreSQL features for caching and pub/sub:
 - **LISTEN/NOTIFY** for pub/sub messaging
 - **Materialized views** for caching query results
 - **Unlogged tables** for session storage (faster, not crash-safe)
@@ -181,26 +185,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-  
-  elasticsearch:
-    image: elasticsearch:8.11.0
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
 
 volumes:
   postgres_data:
-  redis_data:
-  elasticsearch_data:
+    driver: local
 ```

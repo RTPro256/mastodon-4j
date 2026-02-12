@@ -14,7 +14,7 @@
     <artifactId>mastodon-web</artifactId>
     <packaging>jar</packaging>
 
-    <n>Mastodon Web</n>
+    <name>Mastodon Web</name>
     <description>Web controllers, REST API, and main application</description>
 
     <dependencies>
@@ -22,6 +22,32 @@
             <groupId>org.joinmastodon</groupId>
             <artifactId>mastodon-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.joinmastodon</groupId>
+            <artifactId>mastodon-ui</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

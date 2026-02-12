@@ -14,7 +14,7 @@
     <artifactId>mastodon-federation</artifactId>
     <packaging>jar</packaging>
 
-    <n>Mastodon Federation</n>
+    <name>Mastodon Federation</name>
     <description>Federation logic and remote instance communication</description>
 
     <dependencies>

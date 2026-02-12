@@ -5,7 +5,7 @@
 - [ ] Configure Spring Boot application
 - [ ] Set up PostgreSQL schema migration from Ruby
 - [ ] Implement basic domain models (Account, Status, User)
-- [ ] Set up Redis integration
+- [ ] Define Postgres-only caching and pub/sub strategy (LISTEN/NOTIFY, materialized views)
 - [ ] Create basic REST API structure
 
 ## Phase 2: Authentication & Authorization (Weeks 5-6)
@@ -32,7 +32,7 @@
 - [ ] Activity processing queue
 
 ## Phase 5: Advanced Features (Weeks 15-18)
-- [ ] Search functionality (Elasticsearch)
+- [ ] Search functionality (PostgreSQL full-text + pg_trgm)
 - [ ] Direct messages
 - [ ] Lists and filters
 - [ ] Polls

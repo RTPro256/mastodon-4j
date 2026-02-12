@@ -131,7 +131,6 @@ When implementing features, refer to the original Ruby on Rails codebase:
 
 ### Caching
 - [Spring Cache Abstraction](https://docs.spring.io/spring-framework/docs/current/reference/html/integration.html#cache)
-- [Redis Documentation](https://redis.io/documentation)
 - [Caffeine Cache](https://github.com/ben-manes/caffeine)
 
 ## Additional Reading

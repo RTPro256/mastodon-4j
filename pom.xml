@@ -26,6 +26,7 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <testcontainers.version>2.0.2</testcontainers.version>
     </properties>
 
     <modules>
@@ -35,6 +36,7 @@
         <module>mastodon-federation</module>
         <module>mastodon-media</module>
         <module>mastodon-streaming</module>
+        <module>mastodon-ui</module>
     </modules>
 
     <dependencies>
@@ -82,6 +84,18 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <pluginManagement>

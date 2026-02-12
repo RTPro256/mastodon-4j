@@ -14,7 +14,7 @@
     <artifactId>mastodon-core</artifactId>
     <packaging>jar</packaging>
 
-    <n>Mastodon Core</n>
+    <name>Mastodon Core</name>
     <description>Core domain models, repositories, and services</description>
 
     <dependencies>

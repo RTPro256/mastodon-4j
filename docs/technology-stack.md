@@ -20,15 +20,14 @@
 
 ## Data Layer
 - **PostgreSQL** - Primary database
-- **Redis** - Optional high-performance caching layer (see notes below)
-- **Spring Data Redis** - Redis integration (if using Redis)
 - **Hibernate** - ORM
+- **PostgreSQL Full-Text Search** - Search and ranking (tsvector, tsquery, pg_trgm)
+- **LISTEN/NOTIFY** - Pub/sub for streaming and background coordination
 
-### Redis vs PostgreSQL-Only Architecture
+### PostgreSQL-Only Architecture
 
-**Modern PostgreSQL (versions 16-18) can handle many use cases traditionally served by Redis:**
+**This project targets Postgres-only operation:**
 
-**PostgreSQL Can Do:**
 - ✅ In-memory caching with shared buffers
 - ✅ LISTEN/NOTIFY for pub/sub messaging
 - ✅ Materialized views for cached query results
@@ -36,28 +35,9 @@
 - ✅ Session storage with proper indexing
 - ✅ Rate limiting with database triggers
 - ✅ Real-time updates via LISTEN/NOTIFY
+- ✅ Full-text search with `tsvector`, `tsquery`, and `pg_trgm`
 
-**When Redis Still Makes Sense:**
-- ⚡ **Sub-millisecond latency requirements** - Redis keeps data in RAM with simpler data structures
-- 🔄 **High-frequency writes** - Timeline feeds, streaming counters, leaderboards
-- 📊 **Specialized data structures** - HyperLogLog for cardinality, sorted sets for rankings
-- 🌊 **Streaming workloads** - Redis Streams for event processing
-- 💾 **Cache eviction policies** - LRU, LFU built-in
-- 🚀 **Horizontal scaling** - Redis Cluster for distributed caching
-
-**Recommendation for this Project:**
-Start **without Redis** and use PostgreSQL for everything:
-- Use PostgreSQL LISTEN/NOTIFY for real-time streaming
-- Use materialized views for timeline caching
-- Monitor performance metrics
-
-**Add Redis later if you observe:**
-- Timeline generation taking >100ms
-- Database connection pool exhaustion under load
-- Need for more sophisticated caching strategies
-- Streaming API struggling with concurrent connections
-
-This approach reduces complexity and operational overhead while you're learning and building the core features.
+This approach reduces complexity and operational overhead while maintaining compatibility with upstream Mastodon behavior.
 
 ## Background Jobs
 - **Spring Batch** - For batch processing

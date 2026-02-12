@@ -45,6 +45,12 @@ out/
 # Spring Boot
 spring-boot-devtools.properties
 
+# Node
+node_modules/
+mastodon-ui/ui/node_modules/
+mastodon-ui/ui/dist/
+mastodon-ui/.node/
+
 # Application specific
 application-local.yml
 application-*.yml

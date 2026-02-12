@@ -14,7 +14,7 @@
     <artifactId>mastodon-activitypub</artifactId>
     <packaging>jar</packaging>
 
-    <n>Mastodon ActivityPub</n>
+    <name>Mastodon ActivityPub</name>
     <description>ActivityPub protocol implementation</description>
 
     <dependencies>

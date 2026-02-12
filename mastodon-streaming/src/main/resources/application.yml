@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: mastodon-streaming
+  main:
+    web-application-type: reactive
+  profiles:
+    default: streaming
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

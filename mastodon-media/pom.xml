@@ -14,7 +14,7 @@
     <artifactId>mastodon-media</artifactId>
     <packaging>jar</packaging>
 
-    <n>Mastodon Media</n>
+    <name>Mastodon Media</name>
     <description>Media processing and storage</description>
 
     <dependencies>

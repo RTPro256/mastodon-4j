@@ -1,6 +1,9 @@
 # Mastodon Java (mastodon_4j)
 
-A Java-based implementation of the Mastodon federated social network, built with OpenJDK 25 and Spring Boot 4.0.
+A Java-based implementation of the Mastodon federated social network with full web UI parity, built with OpenJDK 25 and Spring Boot 4.x.
+
+**Target compatibility:** Mastodon v4.5.6 (released 2026-02-03).
+**Architecture:** Postgres-only (no Redis, no Elasticsearch).
 
 ## Quick Start
 
@@ -10,6 +13,7 @@ A Java-based implementation of the Mastodon federated social network, built with
 - Maven 3.9+
 - Docker & Docker Compose
 - PostgreSQL 16+ (via Docker)
+- Node.js 20+ (for the UI build once `mastodon-ui` is added)
 
 ### Setup
 
@@ -25,14 +29,24 @@ A Java-based implementation of the Mastodon federated social network, built with
 
 3. **Build the project**:
    ```bash
-   mvn clean install
+   ./mvnw clean install
    ```
+   (Windows: `mvnw.cmd clean install`)
+
+   Optional preflight:
+   ```bash
+   ./scripts/preflight.sh
+   ```
+   (Windows: `powershell -ExecutionPolicy Bypass -File .\\scripts\\preflight.ps1`)
+
+   If tests fail to start with `java: not found`, run the preflight scripts above to verify Java is installed and on PATH.
 
 4. **Run the application**:
    ```bash
    cd mastodon-web
-   mvn spring-boot:run
+   ../mvnw spring-boot:run
    ```
+   (Windows: `..\\mvnw.cmd spring-boot:run`)
 
 The application will start on `http://localhost:8080`
 
@@ -45,7 +59,6 @@ docker-compose ps
 
 You should see:
 - PostgreSQL on port 5432
-- Elasticsearch on port 9200
 
 ### Project Structure
 
@@ -58,6 +71,8 @@ You should see:
 ├── mastodon-federation/    # Federation logic
 ├── mastodon-media/         # Media processing
 ├── mastodon-streaming/     # Real-time streaming
+├── mastodon-ui/            # Web UI (planned)
+├── mastodon-jobs/          # Background jobs (planned)
 ├── docker-compose.yml      # Docker services
 ├── pom.xml                 # Parent POM
 └── CLAUDE.md              # Project documentation hub
@@ -80,6 +95,8 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive documentation including:
 - **mastodon-federation**: Inter-instance federation
 - **mastodon-media**: Image and video processing
 - **mastodon-streaming**: Real-time updates via WebSockets/SSE
+- **mastodon-ui**: Web UI (planned)
+- **mastodon-jobs**: Background jobs (planned)
 
 ## License
 
