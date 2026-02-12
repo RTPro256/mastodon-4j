@@ -8,5 +8,6 @@ public record ApplicationDto(
         @JsonProperty("website") String website,
         @JsonProperty("client_id") String clientId,
         @JsonProperty("client_secret") String clientSecret,
-        @JsonProperty("redirect_uri") String redirectUri) {
+        @JsonProperty("redirect_uri") String redirectUri,
+        @JsonProperty("scopes") String scopes) {
 }

@@ -31,6 +31,9 @@ public class Application {
     @Column(name = "redirect_uri", columnDefinition = "TEXT")
     private String redirectUri;
 
+    @Column(columnDefinition = "TEXT")
+    private String scopes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -87,6 +90,14 @@ public class Application {
 
     public void setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+    }
+
+    public String getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(String scopes) {
+        this.scopes = scopes;
     }
 
     public Instant getCreatedAt() {

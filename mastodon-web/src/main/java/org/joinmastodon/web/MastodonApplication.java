@@ -2,6 +2,9 @@ package org.joinmastodon.web;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main Spring Boot application for Mastodon Java.
@@ -14,6 +17,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @version 0.1.0-SNAPSHOT
  */
 @SpringBootApplication(scanBasePackages = "org.joinmastodon")
+@EntityScan(basePackages = {
+        "org.joinmastodon.core.entity",
+        "org.joinmastodon.jobs"
+})
+@EnableJpaRepositories(basePackages = {
+        "org.joinmastodon.core.repository",
+        "org.joinmastodon.jobs"
+})
+@EnableScheduling
 public class MastodonApplication {
 
     public static void main(String[] args) {

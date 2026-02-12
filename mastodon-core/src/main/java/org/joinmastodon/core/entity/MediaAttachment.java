@@ -28,6 +28,12 @@ public class MediaAttachment {
     @Column(name = "preview_url", columnDefinition = "TEXT")
     private String previewUrl;
 
+    @Column(name = "storage_key", columnDefinition = "TEXT")
+    private String storageKey;
+
+    @Column(name = "preview_key", columnDefinition = "TEXT")
+    private String previewKey;
+
     @Column(name = "remote_url", columnDefinition = "TEXT")
     private String remoteUrl;
 
@@ -37,8 +43,23 @@ public class MediaAttachment {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "file_name", length = 255)
+    private String fileName;
+
+    @Column(name = "content_type", length = 255)
+    private String contentType;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
     @Column(length = 255)
     private String blurhash;
+
+    @Column(nullable = false)
+    private boolean processing = false;
+
+    @Column(name = "processed_at")
+    private Instant processedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -90,6 +111,22 @@ public class MediaAttachment {
         this.previewUrl = previewUrl;
     }
 
+    public String getStorageKey() {
+        return storageKey;
+    }
+
+    public void setStorageKey(String storageKey) {
+        this.storageKey = storageKey;
+    }
+
+    public String getPreviewKey() {
+        return previewKey;
+    }
+
+    public void setPreviewKey(String previewKey) {
+        this.previewKey = previewKey;
+    }
+
     public String getRemoteUrl() {
         return remoteUrl;
     }
@@ -114,12 +151,52 @@ public class MediaAttachment {
         this.description = description;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
     public String getBlurhash() {
         return blurhash;
     }
 
     public void setBlurhash(String blurhash) {
         this.blurhash = blurhash;
+    }
+
+    public boolean isProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(boolean processing) {
+        this.processing = processing;
+    }
+
+    public Instant getProcessedAt() {
+        return processedAt;
+    }
+
+    public void setProcessedAt(Instant processedAt) {
+        this.processedAt = processedAt;
     }
 
     public Instant getCreatedAt() {

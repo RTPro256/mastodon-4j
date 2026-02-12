@@ -29,6 +29,11 @@ public class AccountService {
         return accountRepository.findByUsernameAndDomain(username, domain);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<Account> searchByUsernameOrAcct(String query) {
+        return accountRepository.findByUsernameContainingIgnoreCaseOrAcctContainingIgnoreCase(query, query);
+    }
+
     @Transactional
     public Account save(Account account) {
         return accountRepository.save(account);

@@ -35,6 +35,7 @@
         <module>mastodon-activitypub</module>
         <module>mastodon-federation</module>
         <module>mastodon-media</module>
+        <module>mastodon-jobs</module>
         <module>mastodon-streaming</module>
         <module>mastodon-ui</module>
     </modules>

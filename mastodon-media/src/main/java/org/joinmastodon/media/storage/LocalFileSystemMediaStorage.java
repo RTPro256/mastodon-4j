@@ -41,7 +41,12 @@ public class LocalFileSystemMediaStorage implements MediaStorage {
         return baseUri.resolve(key).toString();
     }
 
-    private Path resolvePath(String key) {
+    @Override
+    public Path resolvePath(String key) {
+        return resolvePathInternal(key);
+    }
+
+    private Path resolvePathInternal(String key) {
         return basePath.resolve(key);
     }
 }

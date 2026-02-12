@@ -26,4 +26,14 @@ public class NotificationService {
     public List<Notification> findByAccountWithCursor(Account account, Long maxId, Long sinceId, Pageable pageable) {
         return notificationRepository.findByAccountWithCursor(account, maxId, sinceId, pageable);
     }
+
+    @Transactional
+    public void delete(Notification notification) {
+        notificationRepository.delete(notification);
+    }
+
+    @Transactional
+    public void clear(Account account) {
+        notificationRepository.deleteByAccount(account);
+    }
 }

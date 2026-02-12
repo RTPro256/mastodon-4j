@@ -62,3 +62,23 @@ mastodon:
   media:
     max-upload-size: 10MB
     allowed-types: image/jpeg,image/png,image/gif,video/mp4
+    storage-path: data/media
+    base-url: http://localhost:8080/
+    ffmpeg-path: ffmpeg
+    ffprobe-path: ffprobe
+    transcode-enabled: false
+    preview-max-width: 400
+    preview-max-height: 400
+    cleanup-retention: 7d
+    cleanup-batch-size: 100
+    processing-lock-timeout: 5m
+    processing-batch-size: 5
+    processing-poll-interval: 5s
+    cleanup-cron: "0 0 3 * * *"
+    cleanup-poll-interval-ms: 600000
+  auth:
+    access-token-ttl-seconds: 7200
+    refresh-token-ttl-seconds: 2592000
+  rate-limit:
+    max-requests: 300
+    window-seconds: 60

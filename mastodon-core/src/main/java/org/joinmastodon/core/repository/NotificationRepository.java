@@ -23,4 +23,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             @Param("maxId") Long maxId,
             @Param("sinceId") Long sinceId,
             Pageable pageable);
+
+    void deleteByAccount(Account account);
 }

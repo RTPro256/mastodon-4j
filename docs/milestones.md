@@ -42,18 +42,17 @@ Deliverables:
 - Core domain models and migrations aligned to upstream schema.
 
 Checklist:
-- [~] `mastodon-core` (3w): Implement Account, User, Status, Follow, MediaAttachment, Notification, Application, Tag, Mention, Poll, List, Filter, Report entities and repositories.
-- [~] `mastodon-core` (2w): Flyway migrations aligned with upstream schema and indexes; seed minimal dev data.
-- [~] `mastodon-web` (1w): DTOs, mappers, validation rules, pagination helpers.
-- [ ] `mastodon-media` (1w): Storage abstraction and media metadata model (no processing yet).
+- [x] `mastodon-core` (3w): Implement Account, User, Status, Follow, MediaAttachment, Notification, Application, Tag, Mention, Poll, List, Filter, Report entities and repositories.
+- [x] `mastodon-core` (2w): Flyway migrations aligned with upstream schema and indexes; seed minimal dev data.
+- [x] `mastodon-web` (1w): DTOs, mappers, validation rules, pagination helpers.
+- [x] `mastodon-media` (1w): Storage abstraction and media metadata model (no processing yet).
 
-Milestone 1 status notes (2026-02-11):
-- Completed entities + repositories/services: Account, User, Status, Follow, MediaAttachment, Tag, Mention, Poll (+ PollOption, PollVote).
-- Flyway: V1/V2 migrations added; dev seed data not added yet.
-- DTOs/mappers: Account/Status/Media/Mention/Tag/Poll covered; validation rules still minimal.
-- Missing entities: Notification, Application, List, Filter, Report.
+Milestone 1 status notes (2026-02-12):
+- Entities + repositories/services now include Notification, Application, List, Filter, Report and join tables.
+- Flyway: V1-V3 migrations present; dev seed data added under dev profile (`db/dev`).
+- DTOs/mappers: Account/Status/Media/Mention/Tag/Poll plus Notification/Application/List/Filter/Report; create/update DTO validation added.
 
-Remaining sub-tasks (Milestone 1):
+Completed sub-tasks (Milestone 1):
 - [x] `mastodon-core`: Add entities + repositories for Notification and NotificationType (include actor, status link, created_at).
 - [x] `mastodon-core`: Add entities + repositories for Application (OAuth app metadata, redirect URIs).
 - [x] `mastodon-core`: Add entities + repositories for List and ListAccount join table.
@@ -71,9 +70,9 @@ Deliverables:
 - OAuth2 provider compatibility and first-party auth flows.
 
 Checklist:
-- [ ] `mastodon-core` (2w): Password hashing, sessions, OAuth client and token models, scopes, grants.
-- [ ] `mastodon-web` (2w): OAuth endpoints (`/oauth/token`, `/oauth/revoke`, `/api/v1/apps`) and user auth flows.
-- [ ] `mastodon-web` (1w): Security filters and rate limiting primitives (per-user/IP) using Postgres-only.
+- [x] `mastodon-core` (2w): Password hashing, sessions, OAuth client and token models, scopes, grants.
+- [x] `mastodon-web` (2w): OAuth endpoints (`/oauth/token`, `/oauth/revoke`, `/api/v1/apps`) and user auth flows.
+- [x] `mastodon-web` (1w): Security filters and rate limiting primitives (per-user/IP) using Postgres-only.
 
 ## Milestone 3 — Core API + Timelines (8-12 weeks)
 Deliverables:
@@ -81,19 +80,30 @@ Deliverables:
 - Postgres-only fanout and streaming.
 
 Checklist:
-- [ ] `mastodon-core` (4w): Status lifecycle (create/delete/boost/favorite/bookmark), visibility rules, timeline fanout logic.
-- [ ] `mastodon-web` (4w): Accounts, statuses, timelines, notifications, lists, filters, and search endpoints (API v1/v2).
-- [ ] `mastodon-streaming` (2w): Stream user/public/hashtag/list timelines via SSE using Postgres LISTEN/NOTIFY.
-- [ ] `mastodon-jobs` (2w): Postgres-backed job queue with `SKIP LOCKED`, retries, and scheduling.
+- [x] `mastodon-core` (4w): Status lifecycle (create/delete/boost/favorite/bookmark), visibility rules, timeline fanout logic.
+- [x] `mastodon-web` (4w): Accounts, statuses, timelines, notifications, lists, filters, and search endpoints (API v1/v2).
+- [x] `mastodon-streaming` (2w): Stream user/public/hashtag/list timelines via SSE using Postgres LISTEN/NOTIFY.
+- [x] `mastodon-jobs` (2w): Postgres-backed job queue with `SKIP LOCKED`, retries, and scheduling.
+
+Milestone 3 status notes (2026-02-12):
+- Core: added status lifecycle service, visibility checks, poll voting support, and cursored follower/following queries.
+- Web: added follow/block/mute + relationships, filters (v2), search (v2) and accounts search (v1), notification clear/dismiss, poll voting, context, and visibility filtering.
+- Streaming: added WebFlux SSE service with Postgres LISTEN/NOTIFY hub and OAuth token auth for user streams.
+- Jobs: added `mastodon-jobs` module with job entity/repository/service and `V6__jobs_table.sql` migration.
 
 ## Milestone 4 — Media Pipeline (4-6 weeks)
 Deliverables:
 - Media upload, processing, and lifecycle management.
 
 Checklist:
-- [ ] `mastodon-media` (3w): Upload ingestion, AV scanning hook, thumbnails, video transcoding (FFmpeg), cleanup jobs.
-- [ ] `mastodon-web` (1w): Media endpoints and async processing status reporting.
-- [ ] `mastodon-jobs` (1w): Retry/backoff policies and processing orchestration.
+- [x] `mastodon-media` (3w): Upload ingestion, AV scanning hook, thumbnails, video transcoding (FFmpeg), cleanup jobs.
+- [x] `mastodon-web` (1w): Media endpoints and async processing status reporting.
+- [x] `mastodon-jobs` (1w): Retry/backoff policies and processing orchestration.
+
+Milestone 4 status notes (2026-02-12):
+- Media ingestion service wired to local storage with AV scan hook, metadata, and async processing queue.
+- Media processing pipeline generates thumbnails for images and preview frames for video via FFmpeg (when available).
+- Cleanup scheduler enqueues jobs; worker deletes orphaned attachments and stored files.
 
 ## Milestone 5 — Federation + ActivityPub (8-12 weeks)
 Deliverables:

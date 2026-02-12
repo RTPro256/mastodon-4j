@@ -49,6 +49,24 @@ public class Account {
     @Column(name = "header_url", columnDefinition = "TEXT")
     private String headerUrl;
 
+    @Column(name = "actor_uri", columnDefinition = "TEXT")
+    private String actorUri;
+
+    @Column(name = "inbox_url", columnDefinition = "TEXT")
+    private String inboxUrl;
+
+    @Column(name = "shared_inbox_url", columnDefinition = "TEXT")
+    private String sharedInboxUrl;
+
+    @Column(name = "public_key_pem", columnDefinition = "TEXT")
+    private String publicKeyPem;
+
+    @Column(name = "local_account", nullable = false)
+    private boolean localAccount = true;
+
+    @Column(name = "last_fetched_at")
+    private Instant lastFetchedAt;
+
     @Column(name = "followers_count", nullable = false)
     private int followersCount = 0;
 
@@ -159,6 +177,54 @@ public class Account {
 
     public void setHeaderUrl(String headerUrl) {
         this.headerUrl = headerUrl;
+    }
+
+    public String getActorUri() {
+        return actorUri;
+    }
+
+    public void setActorUri(String actorUri) {
+        this.actorUri = actorUri;
+    }
+
+    public String getInboxUrl() {
+        return inboxUrl;
+    }
+
+    public void setInboxUrl(String inboxUrl) {
+        this.inboxUrl = inboxUrl;
+    }
+
+    public String getSharedInboxUrl() {
+        return sharedInboxUrl;
+    }
+
+    public void setSharedInboxUrl(String sharedInboxUrl) {
+        this.sharedInboxUrl = sharedInboxUrl;
+    }
+
+    public String getPublicKeyPem() {
+        return publicKeyPem;
+    }
+
+    public void setPublicKeyPem(String publicKeyPem) {
+        this.publicKeyPem = publicKeyPem;
+    }
+
+    public boolean isLocalAccount() {
+        return localAccount;
+    }
+
+    public void setLocalAccount(boolean localAccount) {
+        this.localAccount = localAccount;
+    }
+
+    public Instant getLastFetchedAt() {
+        return lastFetchedAt;
+    }
+
+    public void setLastFetchedAt(Instant lastFetchedAt) {
+        this.lastFetchedAt = lastFetchedAt;
     }
 
     public int getFollowersCount() {

@@ -104,16 +104,31 @@ public final class ApiMapper {
     }
 
     public static MediaAttachmentDto toMediaAttachmentDto(MediaAttachment attachment) {
+        Map<String, Object> meta = buildMeta(attachment);
         return new MediaAttachmentDto(
                 stringId(attachment.getId()),
                 attachment.getType(),
                 attachment.getUrl(),
                 attachment.getPreviewUrl(),
                 attachment.getRemoteUrl(),
-                parseMeta(attachment.getMetaJson()),
+                meta,
                 attachment.getDescription(),
                 attachment.getBlurhash()
         );
+    }
+
+    private static Map<String, Object> buildMeta(MediaAttachment attachment) {
+        Map<String, Object> meta = parseMeta(attachment.getMetaJson());
+        if (meta == null) {
+            if (attachment.isProcessing()) {
+                return Map.of("processing", true);
+            }
+            return null;
+        }
+        if (attachment.isProcessing()) {
+            meta.putIfAbsent("processing", true);
+        }
+        return meta;
     }
 
     private static List<MentionDto> mapMentions(List<Mention> mentions) {
@@ -212,7 +227,8 @@ public final class ApiMapper {
                 application.getWebsite(),
                 application.getClientId(),
                 application.getClientSecret(),
-                application.getRedirectUri()
+                application.getRedirectUri(),
+                application.getScopes()
         );
     }
 
@@ -281,5 +297,15 @@ public final class ApiMapper {
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .collect(Collectors.toList());
+    }
+
+    public static String joinContext(List<String> context) {
+        if (context == null || context.isEmpty()) {
+            return null;
+        }
+        return context.stream()
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.joining(","));
     }
 }
