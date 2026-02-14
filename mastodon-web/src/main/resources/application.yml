@@ -2,33 +2,39 @@ spring:
   application:
     name: mastodon-java
   
+  # Default to H2 embedded database (no Docker required!)
   datasource:
-    url: jdbc:postgresql://localhost:5432/mastodon_development
-    username: mastodon
-    password: mastodon
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:file:./data/mastodon_dev;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 30000
   
+  # H2 Console for database management
+  # Access at: http://localhost:8080/h2-console
+  # JDBC URL: jdbc:h2:file:./data/mastodon_dev
+  # User: sa
+  # Password: (leave empty)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+  
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
         jdbc:
           time_zone: UTC
-  
-  # Redis configuration (optional - uncomment if using Redis)
-  # data:
-  #   redis:
-  #     host: localhost
-  #     port: 6379
-  #     timeout: 2000ms
   
   security:
     oauth2:
@@ -82,3 +88,6 @@ mastodon:
   rate-limit:
     max-requests: 300
     window-seconds: 60
+
+# Note: To use PostgreSQL instead, create application-postgres.yml and run with:
+# mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=postgres
