@@ -23,11 +23,9 @@ This project documentation is organized into separate files for easier navigatio
 ## Prerequisites
 
 - OpenJDK 25 (Early Access builds available from [jdk.java.net](https://jdk.java.net/25/))
-- Maven 3.9+ or Gradle 8.5+
+- Maven 3.9+
 - PostgreSQL 14+ (16+ recommended for best performance)
-- Docker and Docker Compose (for development environment)
 - Git
-- IDE (IntelliJ IDEA recommended for Spring Boot development)
 
 **Optional:**
 - Redis 7+ (only add if performance testing shows it's needed)
@@ -144,11 +142,6 @@ For complete details, see [Technology Stack](./docs/technology-stack.md).
 - Distributed systems
 - OAuth 2.0
 - Spring Boot ecosystem
-
-💡 **Start Small**: Consider beginning with a minimal viable implementation focusing on:
-- Local posting and timelines
-- Basic following/followers
-- Simple ActivityPub federation
 
 📚 **Learn as You Go**: The original Mastodon has thousands of features built over years. Prioritize core functionality first and reference the [Resources](./docs/resources.md) guide for learning materials.
 

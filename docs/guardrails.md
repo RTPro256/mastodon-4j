@@ -1,7 +1,7 @@
 # Guardrails
 
 Claude must NOT:
-- Perform repo-wide automated refactors
+- Perform repo-wide automated refactors without a plan
 - Replace libraries without explicit justification
 - Introduce preview Java features
 - Change concurrency models

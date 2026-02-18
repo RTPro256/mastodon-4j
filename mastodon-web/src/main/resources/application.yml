@@ -2,6 +2,15 @@ spring:
   application:
     name: mastodon-java
   
+  # Disable ALL security auto-configuration for development
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+  
   # Default to H2 embedded database (no Docker required!)
   datasource:
     url: jdbc:h2:file:./data/mastodon_dev;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
@@ -36,27 +45,55 @@ spring:
         jdbc:
           time_zone: UTC
   
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080
+  # OAuth2 JWT configuration (disabled for development)
+  # security:
+  #   oauth2:
+  #     resourceserver:
+  #       jwt:
+  #         issuer-uri: http://localhost:8080
 
 server:
   port: 8080
   compression:
     enabled: true
     mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json
+
+# Spring Boot Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
   
 logging:
   level:
+    # Application logging
     org.joinmastodon: DEBUG
-    org.springframework.web: INFO
-    org.springframework.security: INFO
+    
+    # Spring Framework - verbose logging
+    org.springframework: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
+    
+    # Error handling
+    org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler: DEBUG
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: DEBUG
+    
+    # Database
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    
+    # Show all HTTP requests/responses
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
+  
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%-5level] [%thread] %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{requestId}] %-5level %logger{36} - %msg%n"
 
 # Application-specific configuration

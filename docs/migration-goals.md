@@ -14,4 +14,3 @@
 ## Strategy
 - Prefer official Spring migration paths
 - Follow deprecation warnings, not guesswork
-- Stop and ask if a change may alter runtime behavior

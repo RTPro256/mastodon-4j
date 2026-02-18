@@ -30,6 +30,16 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<Account> findByActorUri(String actorUri) {
+        return accountRepository.findByActorUri(actorUri);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Account> findLocalAccountByUsername(String username) {
+        return accountRepository.findByUsernameAndLocalAccountTrue(username);
+    }
+
+    @Transactional(readOnly = true)
     public java.util.List<Account> searchByUsernameOrAcct(String query) {
         return accountRepository.findByUsernameContainingIgnoreCaseOrAcctContainingIgnoreCase(query, query);
     }

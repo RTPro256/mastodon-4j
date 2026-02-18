@@ -16,7 +16,6 @@ High-risk areas:
 - Streaming / SSE endpoints
 
 If a framework upgrade affects these areas:
-- Stop
 - Explain the impact
 - Propose mitigation
 
@@ -31,5 +30,3 @@ DO NOT:
 
 ASSUME:
 - Remote servers depend on current behavior
-
-STOP immediately if a change affects serialization or headers.

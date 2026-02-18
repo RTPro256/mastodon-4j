@@ -28,10 +28,10 @@ Task:
 1) Review docs/project.md, README.md, docs/milestones.md, docs/ui-contracts.md.
 2) Propose a step-by-step implementation plan for Milestone 0.
 3) Implement the first concrete change: create `mastodon-ui` module scaffolding and wire it into `pom.xml` and `mastodon-web` build pipeline.
-4) Keep each step buildable, and do not introduce new dependencies without approval.
+4) Keep each step buildable
 
 Output:
 - Short plan
 - List of files to change
-- Then implement the first change
+- Then implement the change in order
 ```

@@ -1,4 +1,4 @@
-// mastodon-activitypub/src/main/java/org/joinmastodon/activitypub/model/Activity.java
+// mastodon-activitypub/src/main/java/org/joinmastodon/activitypub/model/Follow.java
 package org.joinmastodon.activitypub.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,26 +8,12 @@ import java.util.List;
 import java.util.ArrayList;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class Activity {
-    // ActivityPub context
-    @JsonProperty("@context")
-    private static final String[] CONTEXT = {
-        "https://www.w3.org/ns/activitystreams",
-        "https://w3id.org/security/v1"
-    };
-
-    // Core fields
-    @JsonProperty("id")
-    private String id;
-
-    @JsonProperty("type")
-    private String type;
-
+public class Follow extends Activity {
     @JsonProperty("actor")
     private String actor;
 
     @JsonProperty("object")
-    private Object object;
+    private String object;
 
     @JsonProperty("to")
     private List<String> to = new ArrayList<>();
@@ -42,17 +28,11 @@ public abstract class Activity {
     private String inReplyTo;
 
     // Getters and setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-
     public String getActor() { return actor; }
     public void setActor(String actor) { this.actor = actor; }
 
-    public Object getObject() { return object; }
-    public void setObject(Object object) { this.object = object; }
+    public String getObject() { return object; }
+    public void setObject(String object) { this.object = object; }
 
     public List<String> getTo() { return to; }
     public void setTo(List<String> to) { this.to = to; }
@@ -69,6 +49,10 @@ public abstract class Activity {
         this.published = published;
     }
 
-    // Validation method for subclasses to implement
-    public abstract void validate();
+    @Override
+    public void validate() {
+        if (actor == null || object == null) {
+            throw new IllegalArgumentException("Missing required fields: actor and object");
+        }
+    }
 }

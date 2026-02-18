@@ -1,0 +1,25 @@
+package org.joinmastodon.activitypub.model;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class FollowActivity extends Activity {
+    private Object object;
+
+    public FollowActivity(String actor, Object object) {
+        super("Follow", actor);
+        this.object = object;
+    }
+
+    @JsonProperty("object")
+    public Object getObject() {
+        return object;
+    }
+
+    @JsonProperty("object")
+    public void setObject(Object object) {
+        this.object = object;
+    }
+}
