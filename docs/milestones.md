@@ -8,21 +8,32 @@ Decisions locked on 2026-02-11:
 Effort estimates are in person-weeks for 1 senior engineer. Parallel work can reduce calendar time if multiple engineers are available.
 
 ## AI Workflow (Ollama)
-Models and purpose:
-- `qwen-mastodon`: primary planner/orchestrator for migration tasks.
-- `llama-codegen`: code generation for entities, services, controllers.
-- `llama-testing`: test generation and coverage expansion.
-- `llama-architect`: architecture and design reviews.
-- `qwen-security`: security reviews and threat modeling.
-- `llama-docs`: documentation updates.
+
+All agent Modelfiles live in `.claude/agents/*.Modelfile`. Build them with:
+```
+.claude\ollama\create_modelfiles.bat .claude\agents
+```
+Or using the CLI script:
+```
+.\.claude\commands\mastodon.ps1 models build
+```
+
+| Agent Model | Base Model | Purpose |
+|---|---|---|
+| `orchestrator` | `qwen3:32b` | Primary planner/orchestrator for migration tasks |
+| `code-gen` | `qwen3-coder:30b` | Code generation: entities, services, controllers, federation |
+| `test-gen` | `deepseek-coder:33b-instruct-q5_K_M` | Test generation and coverage expansion |
+| `architect` | `deepseek-r1:32b` | Architecture and design reviews |
+| `security` | `deepseek-r1:32b` | Security reviews and threat modeling |
+| `docs` | `llama3.3:70b` | Documentation updates |
 
 Executable commands:
-- Build models: `./.claude/commands/Build-OllamaModels.ps1`
-- Windows batch alternative: `./.claude/commands/build-models.bat`
-- Validate environment: `./.claude/commands/Test-Setup.ps1`
-- Generate a feature slice (entity -> API -> tests): `./.claude/commands/Generate-Feature.ps1 -FeatureName <feature>`
-- Run review agent: `claude code run ./.claude/agents/review-agent.json --model llama-architect`
-- Run security agent: `claude code run ./.claude/agents/security-agent.json --model qwen-security`
+- Build all agent models: `./.claude/ollama/create_modelfiles.bat .claude/agents`
+- Build all base models: `./.claude/ollama/create_modelfiles.bat .claude/ollama`
+- Validate environment: `./.claude/commands/mastodon.ps1 test-setup`
+- Generate a feature slice (entity -> API -> tests): `./.claude/commands/mastodon.ps1 feature <n>`
+- Run review agent: `claude code run ./.claude/agents/review-agent.json --model architect`
+- Run security agent: `claude code run ./.claude/agents/security-agent.json --model security`
 
 ## Milestone 0 — Scope Lock + Build Baseline (2-3 weeks)
 Deliverables:

@@ -1,6 +1,7 @@
 # Claude & IDE
 .claude/
 .codex/
+.continue/
 .git/
 .mvn/
 .temp/

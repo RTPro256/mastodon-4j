@@ -13,7 +13,7 @@ This file is the official entrypoint for executing the Mastodon Java migration p
 - `docs/guardrails.md` and `docs/federation.md` (constraints)
 - `docs/project.md` and `README.md` (scope and setup)
 
-## Execution Prompt (use with `qwen-mastodon`)
+## Execution Prompt (use with `orchestrator`)
 ```text
 You are the project AI for mastodon_4j. Start with Milestone 0 in docs/milestones.md.
 
