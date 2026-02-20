@@ -76,6 +76,24 @@ public class Account {
     @Column(name = "statuses_count", nullable = false)
     private int statusesCount = 0;
 
+    @Column(nullable = false)
+    private boolean suspended = false;
+
+    @Column(name = "suspended_at")
+    private Instant suspendedAt;
+
+    @Column(nullable = false)
+    private boolean silenced = false;
+
+    @Column(name = "silenced_at")
+    private Instant silencedAt;
+
+    @Column(nullable = false)
+    private boolean disabled = false;
+
+    @Column(name = "disabled_at")
+    private Instant disabledAt;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
@@ -249,5 +267,53 @@ public class Account {
 
     public void setStatusesCount(int statusesCount) {
         this.statusesCount = statusesCount;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
+    }
+
+    public Instant getSuspendedAt() {
+        return suspendedAt;
+    }
+
+    public void setSuspendedAt(Instant suspendedAt) {
+        this.suspendedAt = suspendedAt;
+    }
+
+    public boolean isSilenced() {
+        return silenced;
+    }
+
+    public void setSilenced(boolean silenced) {
+        this.silenced = silenced;
+    }
+
+    public Instant getSilencedAt() {
+        return silencedAt;
+    }
+
+    public void setSilencedAt(Instant silencedAt) {
+        this.silencedAt = silencedAt;
+    }
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
+
+    public Instant getDisabledAt() {
+        return disabledAt;
+    }
+
+    public void setDisabledAt(Instant disabledAt) {
+        this.disabledAt = disabledAt;
     }
 }

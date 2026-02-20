@@ -65,6 +65,11 @@ public class StatusService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<Status> findByUri(String uri) {
+        return statusRepository.findByUri(uri);
+    }
+
+    @Transactional(readOnly = true)
     public List<Status> findReplies(Long statusId) {
         return statusRepository.findByInReplyToIdOrderByIdAsc(statusId);
     }

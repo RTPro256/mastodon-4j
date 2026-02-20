@@ -1,0 +1,81 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "submit": "Submit",
+    "search": "Search",
+    "more": "More"
+  },
+  "auth": {
+    "login": "Log in",
+    "logout": "Log out",
+    "loginPrompt": "Log in to your account",
+    "oauthRedirect": "Completing authentication..."
+  },
+  "compose": {
+    "placeholder": "What's on your mind?",
+    "post": "Post",
+    "reply": "Reply",
+    "contentWarning": "Content warning",
+    "visibility": {
+      "public": "Public",
+      "unlisted": "Unlisted",
+      "private": "Followers only",
+      "direct": "Mentioned people only"
+    }
+  },
+  "timeline": {
+    "home": "Home",
+    "local": "Local",
+    "federated": "Federated",
+    "notifications": "Notifications",
+    "endOfTimeline": "You've reached the end of the timeline",
+    "noStatuses": "No statuses yet"
+  },
+  "status": {
+    "reply": "Reply",
+    "boost": "Boost",
+    "favourite": "Favourite",
+    "bookmark": "Bookmark",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this status?",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "sensitiveMedia": "Sensitive content"
+  },
+  "notifications": {
+    "mention": "mentioned you",
+    "reblog": "boosted your status",
+    "favourite": "favourited your status",
+    "follow": "followed you",
+    "poll": "A poll you voted in has ended",
+    "status": "posted a status"
+  },
+  "profile": {
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "following": "Following",
+    "followers": "Followers",
+    "statuses": "Statuses",
+    "blocked": "Blocked",
+    "muted": "Muted"
+  },
+  "settings": {
+    "profile": "Profile",
+    "preferences": "Preferences",
+    "account": "Account",
+    "security": "Security"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "reports": "Reports",
+    "accounts": "Accounts",
+    "instances": "Instances"
+  }
+}

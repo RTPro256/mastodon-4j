@@ -2,6 +2,8 @@ package org.joinmastodon.core.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +16,13 @@ import java.time.Instant;
 @Entity
 @Table(name = "users")
 public class User {
+    
+    public enum Role {
+        USER,
+        MODERATOR,
+        ADMIN
+    }
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,6 +45,10 @@ public class User {
 
     @Column(name = "last_sign_in_at")
     private Instant lastSignInAt;
+
+    @Column(nullable = false, length = 32)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
 
     @PrePersist
     public void prePersist() {
@@ -98,5 +111,13 @@ public class User {
 
     public void setLastSignInAt(Instant lastSignInAt) {
         this.lastSignInAt = lastSignInAt;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

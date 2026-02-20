@@ -41,6 +41,16 @@ public abstract class Activity {
     @JsonProperty("inReplyTo")
     private String inReplyTo;
 
+    // Default constructor
+    protected Activity() {
+    }
+
+    // Constructor with type and actor
+    protected Activity(String type, String actor) {
+        this.type = type;
+        this.actor = actor;
+    }
+
     // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -64,11 +74,12 @@ public abstract class Activity {
     public void setPublished(Instant published) { this.published = published; }
 
     public String getInReplyTo() { return inReplyTo; }
-    public void setInReplyTo(String inReplyTo, Instant published) {
+    public void setInReplyTo(String inReplyTo) {
         this.inReplyTo = inReplyTo;
-        this.published = published;
     }
 
     // Validation method for subclasses to implement
-    public abstract void validate();
+    public void validate() {
+        // Default implementation - subclasses can override
+    }
 }

@@ -86,4 +86,22 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
     Optional<Status> findByAccountAndReblog(Account account, Status reblog);
 
     List<Status> findByInReplyToIdOrderByIdAsc(Long inReplyToId);
+
+    Optional<Status> findByUri(String uri);
+
+    // Full-text search using PostgreSQL tsvector
+    @Query(value = """
+            SELECT s.* FROM statuses s
+            WHERE s.content_tsvector @@ plainto_tsquery('english', :query)
+            ORDER BY s.created_at DESC
+            """, nativeQuery = true)
+    List<Status> searchByContent(@Param("query") String query, Pageable pageable);
+
+    // Fallback search using LIKE for when tsvector doesn't return results
+    @Query("""
+            SELECT s FROM Status s
+            WHERE LOWER(s.content) LIKE LOWER(CONCAT('%', :query, '%'))
+            ORDER BY s.createdAt DESC
+            """)
+    List<Status> searchByContentLike(@Param("query") String query, Pageable pageable);
 }

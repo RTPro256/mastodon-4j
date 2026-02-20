@@ -1,0 +1,167 @@
+.compose {
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--link-color);
+}
+
+.textarea::placeholder {
+  color: var(--secondary-text-color);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.option label {
+  color: var(--secondary-text-color);
+}
+
+.option select {
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.spoilerInput {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.spoilerInput:focus {
+  outline: none;
+  border-color: var(--link-color);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.mediaButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.mediaButton {
+  padding: 8px;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--secondary-text-color);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.mediaButton:hover {
+  background: var(--action-hover-bg);
+  color: var(--text-color);
+}
+
+.submitButton {
+  padding: 8px 16px;
+  background: var(--link-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.charCount {
+  font-size: 14px;
+  color: var(--secondary-text-color);
+  margin-right: 12px;
+}
+
+.charCount.overLimit {
+  color: var(--error-color);
+}
+
+.mediaPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.mediaPreviewItem {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mediaPreviewItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeMedia {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

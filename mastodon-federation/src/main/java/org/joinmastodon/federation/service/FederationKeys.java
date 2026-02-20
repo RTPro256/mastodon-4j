@@ -1,6 +1,8 @@
 package org.joinmastodon.federation.service;
 
 import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 public class FederationKeys {
     private final KeyPair keyPair;
@@ -17,5 +19,13 @@ public class FederationKeys {
 
     public String getKeyId() {
         return keyId;
+    }
+
+    public PrivateKey getPrivateKey() {
+        return keyPair.getPrivate();
+    }
+
+    public PublicKey getPublicKey() {
+        return keyPair.getPublic();
     }
 }

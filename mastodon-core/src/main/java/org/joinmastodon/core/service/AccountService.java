@@ -3,6 +3,8 @@ package org.joinmastodon.core.service;
 import java.util.Optional;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.repository.AccountRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,5 +49,36 @@ public class AccountService {
     @Transactional
     public Account save(Account account) {
         return accountRepository.save(account);
+    }
+
+    // Admin queries
+    @Transactional(readOnly = true)
+    public Page<Account> findAll(Pageable pageable) {
+        return accountRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Account> findBySuspended(boolean suspended, Pageable pageable) {
+        return accountRepository.findBySuspended(suspended, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Account> findBySilenced(boolean silenced, Pageable pageable) {
+        return accountRepository.findBySilenced(silenced, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Account> findByDisabled(boolean disabled, Pageable pageable) {
+        return accountRepository.findByDisabled(disabled, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Account> findByDomain(String domain, Pageable pageable) {
+        return accountRepository.findByDomain(domain, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Account> findByLocalAccount(boolean localAccount, Pageable pageable) {
+        return accountRepository.findByLocalAccount(localAccount, pageable);
     }
 }

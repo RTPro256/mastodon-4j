@@ -38,7 +38,12 @@ public class LocalFileSystemMediaStorage implements MediaStorage {
         if (baseUri == null) {
             return resolvePath(key).toUri().toString();
         }
-        return baseUri.resolve(key).toString();
+        // Ensure base URI ends with / for proper resolution
+        String base = baseUri.toString();
+        if (!base.endsWith("/")) {
+            base = base + "/";
+        }
+        return base + key;
     }
 
     @Override

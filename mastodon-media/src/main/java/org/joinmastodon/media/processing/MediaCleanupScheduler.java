@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.Map;
 import org.joinmastodon.jobs.JobService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "mastodon.media.scheduling.enabled", havingValue = "true", matchIfMissing = true)
 public class MediaCleanupScheduler {
     private final JobService jobService;
     private final ObjectMapper objectMapper;

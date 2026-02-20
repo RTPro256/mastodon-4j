@@ -50,7 +50,8 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
             Long userId = user != null ? user.getId() : null;
             Long accountId = user != null && user.getAccount() != null ? user.getAccount().getId() : null;
             Long applicationId = token.getApplication() != null ? token.getApplication().getId() : null;
-            AuthenticatedPrincipal principal = new AuthenticatedPrincipal(userId, accountId, applicationId, scopes);
+            User.Role role = user != null ? user.getRole() : User.Role.USER;
+            AuthenticatedPrincipal principal = new AuthenticatedPrincipal(userId, accountId, applicationId, scopes, role);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(principal, tokenValue, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);

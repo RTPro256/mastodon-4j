@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.joinmastodon.activitypub.model.Activity;
 import org.joinmastodon.activitypub.model.Actor;
+import org.joinmastodon.activitypub.model.Create;
 import org.joinmastodon.activitypub.model.MediaLink;
 import org.joinmastodon.activitypub.model.Note;
 import org.joinmastodon.activitypub.model.OrderedCollection;
@@ -64,8 +65,8 @@ public class ActivityPubMapper {
         return note;
     }
 
-    public Activity toCreateActivity(Status status) {
-        Activity activity = new Activity();
+    public Create toCreateActivity(Status status) {
+        Create activity = new Create();
         String baseUrl = properties.getBaseUrl().replaceAll("/$", "");
         String actorId = baseUrl + "/users/" + status.getAccount().getUsername();
         String id = baseUrl + "/activities/" + status.getId();
@@ -77,8 +78,8 @@ public class ActivityPubMapper {
         return activity;
     }
 
-    public OrderedCollection<Activity> toOutbox(Account account, List<Status> statuses) {
-        OrderedCollection<Activity> collection = new OrderedCollection<>();
+    public OrderedCollection<Create> toOutbox(Account account, List<Status> statuses) {
+        OrderedCollection<Create> collection = new OrderedCollection<>();
         String baseUrl = properties.getBaseUrl().replaceAll("/$", "");
         collection.setId(baseUrl + "/users/" + account.getUsername() + "/outbox");
         collection.setTotalItems(statuses.size());

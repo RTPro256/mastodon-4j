@@ -27,6 +27,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <testcontainers.version>2.0.2</testcontainers.version>
+        <!-- Skip tests by default for faster builds; override with -DskipTests=false -->
+        <skipTests>true</skipTests>
     </properties>
 
     <modules>
@@ -143,7 +145,7 @@
                         
                         <!-- Skip tests by default for faster builds -->
                         <!-- Override with: mvn clean install -DskipTests=false -->
-                        <skipTests>true</skipTests>
+                        <skipTests>${skipTests}</skipTests>
                         
                         <!-- Use JUnit 5 -->
                         <includes>
@@ -151,6 +153,37 @@
                             <include>**/*Tests.java</include>
                         </includes>
                     </configuration>
+                </plugin>
+                
+                <!-- OWASP Dependency Check for vulnerability scanning -->
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>9.0.9</version>
+                    <configuration>
+                        <failBuildOnCVSS>7</failBuildOnCVSS>
+                        <suppressionFile>${project.basedir}/dependency-check-suppressions.xml</suppressionFile>
+                        <formats>
+                            <format>HTML</format>
+                            <format>JSON</format>
+                            <format>JUNIT</format>
+                        </formats>
+                        <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+                        <nvdApiDelay>3500</nvdApiDelay>
+                        <analyzers>
+                            <assemblyEnabled>false</assemblyEnabled>
+                            <nodeEnabled>false</nodeEnabled>
+                            <nodeAuditEnabled>false</nodeAuditEnabled>
+                        </analyzers>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <phase>verify</phase>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>

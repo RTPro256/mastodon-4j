@@ -41,6 +41,20 @@ public class Report {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @ManyToOne
+    @JoinColumn(name = "assigned_account_id")
+    private Account assignedAccount;
+
+    @Column(name = "action_taken_at")
+    private Instant actionTakenAt;
+
+    @ManyToOne
+    @JoinColumn(name = "action_taken_by_account_id")
+    private Account actionTakenBy;
+
+    @Column(nullable = false)
+    private boolean forwarded = false;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
@@ -102,5 +116,37 @@ public class Report {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Account getAssignedAccount() {
+        return assignedAccount;
+    }
+
+    public void setAssignedAccount(Account assignedAccount) {
+        this.assignedAccount = assignedAccount;
+    }
+
+    public Instant getActionTakenAt() {
+        return actionTakenAt;
+    }
+
+    public void setActionTakenAt(Instant actionTakenAt) {
+        this.actionTakenAt = actionTakenAt;
+    }
+
+    public Account getActionTakenBy() {
+        return actionTakenBy;
+    }
+
+    public void setActionTakenBy(Account actionTakenBy) {
+        this.actionTakenBy = actionTakenBy;
+    }
+
+    public boolean isForwarded() {
+        return forwarded;
+    }
+
+    public void setForwarded(boolean forwarded) {
+        this.forwarded = forwarded;
     }
 }
