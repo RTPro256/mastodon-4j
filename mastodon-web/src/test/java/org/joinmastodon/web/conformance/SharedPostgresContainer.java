@@ -1,7 +1,7 @@
 package org.joinmastodon.web.conformance;
 
 import org.flywaydb.core.Flyway;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -12,8 +12,7 @@ public final class SharedPostgresContainer {
 
     private static final AtomicBoolean STARTED = new AtomicBoolean(false);
     private static final AtomicBoolean MIGRATED = new AtomicBoolean(false);
-    @SuppressWarnings("deprecation")
-    private static PostgreSQLContainer<?> INSTANCE;
+    private static PostgreSQLContainer INSTANCE;
 
     static {
         String os = System.getProperty("os.name", "").toLowerCase();
@@ -36,12 +35,12 @@ public final class SharedPostgresContainer {
         // Private constructor to prevent instantiation
     }
 
-    @SuppressWarnings({"deprecation", "resource"})
-    public static PostgreSQLContainer<?> getInstance() {
+    @SuppressWarnings("resource") // Container lifecycle managed by Testcontainers with reuse enabled
+    public static PostgreSQLContainer getInstance() {
         if (INSTANCE == null) {
             synchronized (SharedPostgresContainer.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new PostgreSQLContainer<>("postgres:16-alpine")
+                    INSTANCE = new PostgreSQLContainer("postgres:16-alpine")
                             .withDatabaseName("mastodon_test")
                             .withUsername("mastodon")
                             .withPassword("mastodon")
@@ -52,9 +51,8 @@ public final class SharedPostgresContainer {
         return INSTANCE;
     }
 
-    @SuppressWarnings("deprecation")
     public static void startAndMigrate() {
-        PostgreSQLContainer<?> container = getInstance();
+        PostgreSQLContainer container = getInstance();
         if (STARTED.compareAndSet(false, true)) {
             container.start();
         }

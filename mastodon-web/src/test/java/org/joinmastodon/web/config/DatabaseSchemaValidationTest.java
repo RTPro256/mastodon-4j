@@ -8,10 +8,9 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -30,10 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DatabaseSchemaValidationTest {
 
     @Container
-    @SuppressWarnings("resource")
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:16-alpine")
-    )
+    @SuppressWarnings("resource") // Container lifecycle managed by Testcontainers JUnit extension
+    private static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine")
             .withDatabaseName("mastodon_test")
             .withUsername("test")
             .withPassword("test");

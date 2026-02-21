@@ -1,3 +1,4 @@
+
 # Configuration Reference
 
 This document describes all configurable options for Mastodon 4j.
@@ -119,6 +120,33 @@ audio/wav
 | `mastodon.oauth.access-token-ttl` | | `2h` | Access token lifetime |
 | `mastodon.oauth.refresh-token-ttl` | | `30d` | Refresh token lifetime |
 | `mastodon.oauth.authorization-code-ttl` | | `10m` | Authorization code lifetime |
+
+## Email Configuration
+
+Email is required for email confirmation and notifications.
+
+| Property | Environment Variable | Default | Description |
+|----------|---------------------|---------|-------------|
+| `spring.mail.host` | `SMTP_SERVER` | | SMTP server host |
+| `spring.mail.port` | `SMTP_PORT` | `587` | SMTP server port |
+| `spring.mail.username` | `SMTP_LOGIN` | | SMTP username |
+| `spring.mail.password` | `SMTP_PASSWORD` | | SMTP password |
+| `spring.mail.properties.mail.smtp.auth` | | `true` | Enable SMTP auth |
+| `spring.mail.properties.mail.smtp.starttls.enable` | | `true` | Enable STARTTLS |
+
+### Email Confirmation Settings
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `mastodon.email.confirmation-required` | `true` | Require email confirmation |
+| `mastodon.email.confirmation-subject` | `Confirm your email` | Confirmation email subject |
+
+### Approval Workflow Settings
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `mastodon.approval.required` | `false` | Require admin approval for new accounts |
+| `mastodon.approval.default-approved` | `true` | Auto-approve accounts when approval not required |
 
 ## Security Configuration
 
