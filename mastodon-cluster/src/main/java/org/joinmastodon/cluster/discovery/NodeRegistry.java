@@ -137,6 +137,30 @@ public class NodeRegistry {
     }
 
     /**
+     * Elect a new coordinator from available nodes.
+     * Selects the node with the lowest ID (simple deterministic election).
+     */
+    public Optional<ClusterNode> electCoordinator() {
+        List<ClusterNode> activeNodes = getActiveNodes();
+        if (activeNodes.isEmpty()) {
+            log.warn("No active nodes available for coordinator election");
+            return Optional.empty();
+        }
+        
+        // Simple election: choose node with lowest ID (deterministic)
+        ClusterNode newCoordinator = activeNodes.stream()
+                .min(Comparator.comparing(ClusterNode::getId))
+                .orElse(null);
+        
+        if (newCoordinator != null) {
+            setCoordinator(newCoordinator.getId());
+            log.info("Elected new coordinator: {}", newCoordinator.getId());
+            return Optional.of(newCoordinator);
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Get the current node (this instance).
      */
     public Optional<ClusterNode> getCurrentNode() {

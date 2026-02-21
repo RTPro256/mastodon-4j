@@ -204,9 +204,19 @@ class FailoverManagerTest {
     // Helper methods
 
     private ClusterNode createNode(String id, String host, ClusterNode.NodeState state) {
-        ClusterNode node = new ClusterNode();
-        node.setId(id);
-        node.setHost(host);
+        ClusterNode node = new ClusterNode(
+                id,
+                id,
+                host,
+                7946,
+                "http://" + host + ":8080",
+                java.util.List.of(org.joinmastodon.cluster.config.NodeProperties.NodeCapability.API),
+                100,
+                1,
+                null,
+                null,
+                java.util.List.of()
+        );
         node.setState(state);
         return node;
     }

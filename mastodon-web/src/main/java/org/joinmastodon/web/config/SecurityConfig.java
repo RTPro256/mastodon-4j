@@ -13,11 +13,14 @@ import org.springframework.security.web.SecurityFilterChain;
  * This configuration disables all security for easy development.
  * 
  * WARNING: This is for DEVELOPMENT ONLY. 
- * For production, implement proper authentication and authorization.
+ * For production, use ProductionSecurityConfig with proper authentication.
+ * 
+ * This config is active for 'dev' and 'default' profiles only.
+ * The 'prod' profile uses ProductionSecurityConfig instead.
  */
 @Configuration
 @EnableWebSecurity
-@Profile("!test")
+@Profile({"dev", "default"})
 public class SecurityConfig {
 
     @Bean

@@ -200,7 +200,12 @@ public class NodeProperties {
         /**
          * Act as coordinator.
          */
-        COORDINATOR
+        COORDINATOR,
+
+        /**
+         * General worker node for distributed tasks.
+         */
+        WORKER
     }
 
     /**

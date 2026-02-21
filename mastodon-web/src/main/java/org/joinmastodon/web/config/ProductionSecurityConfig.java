@@ -1,5 +1,6 @@
 package org.joinmastodon.web.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -25,13 +26,19 @@ import java.util.List;
  * - X-XSS-Protection
  * - X-Content-Type-Options
  * - Referrer-Policy
- * - CORS configuration
+ * - CORS configuration (restricted to allowed origins)
  * - CSRF protection for session-based auth
  */
 @Configuration
 @EnableWebSecurity
 @Profile("prod")
 public class ProductionSecurityConfig {
+
+    @Value("${mastodon.cors.allowed-origins:}")
+    private String allowedOriginsConfig;
+    
+    @Value("${mastodon.base-url}")
+    private String instanceBaseUrl;
 
     @Bean
     public SecurityFilterChain productionSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -123,8 +130,15 @@ public class ProductionSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allowed origins - should be configured via environment variable
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        // Parse allowed origins from configuration
+        List<String> allowedOrigins = parseAllowedOrigins();
+        
+        if (allowedOrigins.isEmpty()) {
+            // If no origins configured, use the instance base URL
+            allowedOrigins = List.of(instanceBaseUrl);
+        }
+        
+        configuration.setAllowedOrigins(allowedOrigins);
         
         // Allowed methods
         configuration.setAllowedMethods(Arrays.asList(
@@ -161,5 +175,20 @@ public class ProductionSecurityConfig {
         source.registerCorsConfiguration("/oauth/**", configuration);
         
         return source;
+    }
+    
+    /**
+     * Parse allowed origins from configuration.
+     * Supports comma-separated list of URLs.
+     */
+    private List<String> parseAllowedOrigins() {
+        if (allowedOriginsConfig == null || allowedOriginsConfig.isBlank()) {
+            return List.of();
+        }
+        
+        return Arrays.stream(allowedOriginsConfig.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 }

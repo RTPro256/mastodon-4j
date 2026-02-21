@@ -1,41 +1,34 @@
 package org.joinmastodon.cluster.config;
 
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Health indicator for cluster status.
+ * Uses Spring Boot 4.0 Actuator endpoint pattern.
  */
-public class ClusterHealthIndicator implements HealthIndicator {
+@Component
+@Endpoint(id = "cluster")
+public class ClusterHealthIndicator {
 
     private ClusterStatus clusterStatus = ClusterStatus.UNKNOWN;
     private int activeNodes = 0;
     private int totalNodes = 0;
     private String coordinatorNode = null;
 
-    @Override
-    public Health health() {
-        if (clusterStatus == ClusterStatus.HEALTHY) {
-            return Health.up()
-                    .withDetail("status", clusterStatus)
-                    .withDetail("activeNodes", activeNodes)
-                    .withDetail("totalNodes", totalNodes)
-                    .withDetail("coordinator", coordinatorNode)
-                    .build();
-        } else if (clusterStatus == ClusterStatus.DEGRADED) {
-            return Health.status(new Status("DEGRADED", "Cluster is operating in degraded mode"))
-                    .withDetail("activeNodes", activeNodes)
-                    .withDetail("totalNodes", totalNodes)
-                    .withDetail("coordinator", coordinatorNode)
-                    .build();
-        } else {
-            return Health.down()
-                    .withDetail("status", clusterStatus)
-                    .withDetail("activeNodes", activeNodes)
-                    .withDetail("totalNodes", totalNodes)
-                    .build();
-        }
+    @ReadOperation
+    public Map<String, Object> health() {
+        Map<String, Object> health = new HashMap<>();
+        health.put("status", clusterStatus.name());
+        health.put("activeNodes", activeNodes);
+        health.put("totalNodes", totalNodes);
+        health.put("coordinator", coordinatorNode);
+        health.put("healthy", clusterStatus == ClusterStatus.HEALTHY);
+        return health;
     }
 
     public void updateStatus(ClusterStatus status, int activeNodes, int totalNodes, String coordinatorNode) {

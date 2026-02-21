@@ -125,6 +125,12 @@ This document outlines the REST API endpoints implemented in mastodon_4j, follow
 - `GET /api/v1/admin/instance` - Get instance settings
 - `PUT /api/v1/admin/instance` - Update instance settings
 
+### Configuration Management
+- `GET /api/v1/admin/config/status` - Get configuration validation status summary
+- `GET /api/v1/admin/config/validate` - Get full configuration validation result
+- `GET /api/v1/admin/config/categories` - Get list of configuration categories
+- `GET /api/v1/admin/config/validate/{category}` - Validate specific category (database, email, federation, security, media, server)
+
 ## Instance Information
 - `GET /api/v1/instance` - Get instance information
 - `GET /api/v1/instance/peers` - Get instance peers

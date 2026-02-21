@@ -36,6 +36,21 @@ CREATE TABLE IF NOT EXISTS status_pins (
 CREATE INDEX IF NOT EXISTS idx_status_pins_account_id ON status_pins(account_id);
 CREATE INDEX IF NOT EXISTS idx_status_pins_status_id ON status_pins(status_id);
 
+-- Create email_confirmation_tokens table for email confirmation workflow
+CREATE TABLE IF NOT EXISTS email_confirmation_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ,
+    used BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_confirmation_tokens_token ON email_confirmation_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_email_confirmation_tokens_user ON email_confirmation_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_email_confirmation_tokens_expires ON email_confirmation_tokens(expires_at);
+
 -- Add comments to document the new columns
 COMMENT ON COLUMN follows.pending IS 'Whether this follow request is pending approval (for locked accounts)';
 COMMENT ON COLUMN users.last_sign_in_ip IS 'IP address of last sign in';
