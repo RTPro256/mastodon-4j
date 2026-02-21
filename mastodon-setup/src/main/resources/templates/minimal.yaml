@@ -1,0 +1,25 @@
+# Minimal Server Configuration
+# Use this for a small personal instance
+
+server:
+  domain: localhost
+  name: "My Mastodon"
+  description: "A personal Mastodon instance"
+  admin_email: admin@localhost
+  registrations_open: false
+  approval_required: false
+
+resources:
+  cpu_cores: 2
+  memory_gb: 2
+  gpu_enabled: false
+
+content:
+  default_visibility: public
+  private_content_enabled: false
+  federation_mode: open
+
+federation_index:
+  enabled: false
+  share_ratings: false
+  share_restrictions: false

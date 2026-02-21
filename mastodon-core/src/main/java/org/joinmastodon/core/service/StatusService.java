@@ -74,6 +74,25 @@ public class StatusService {
         return statusRepository.findByInReplyToIdOrderByIdAsc(statusId);
     }
 
+    @Transactional(readOnly = true)
+    public List<Status> findReblogs(Status status) {
+        return statusRepository.findByReblogWithAccount(status);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Account> findReblogAccounts(Status status) {
+        return statusRepository.findByReblogWithAccount(status).stream()
+                .map(Status::getAccount)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Account> findReblogAccountsByStatusId(Long statusId) {
+        return statusRepository.findByReblogIdWithAccount(statusId).stream()
+                .map(Status::getAccount)
+                .toList();
+    }
+
     @Transactional
     public Status save(Status status) {
         return statusRepository.save(status);
@@ -82,5 +101,15 @@ public class StatusService {
     @Transactional
     public void delete(Status status) {
         statusRepository.delete(status);
+    }
+
+    @Transactional(readOnly = true)
+    public long countReblogs(Long statusId) {
+        return statusRepository.countByReblogId(statusId);
+    }
+
+    @Transactional(readOnly = true)
+    public long countReplies(Long statusId) {
+        return statusRepository.countByInReplyToId(statusId);
     }
 }

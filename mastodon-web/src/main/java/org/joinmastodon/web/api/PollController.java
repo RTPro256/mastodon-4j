@@ -9,6 +9,7 @@ import org.joinmastodon.core.service.PollVoteService;
 import org.joinmastodon.web.api.dto.PollDto;
 import org.joinmastodon.web.api.dto.request.PollVoteRequest;
 import org.joinmastodon.web.auth.AuthenticatedPrincipal;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping(ApiVersion.V1 + "/polls")
 public class PollController {
+    private static final HttpStatusCode UNPROCESSABLE_ENTITY = HttpStatusCode.valueOf(422);
     private final PollService pollService;
     private final PollVoteService pollVoteService;
     private final AccountService accountService;
@@ -49,7 +51,7 @@ public class PollController {
             Poll updated = pollVoteService.castVotes(poll, account, request.choices());
             return ApiMapper.toPollDto(updated);
         } catch (IllegalStateException ex) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+            throw new ResponseStatusException(UNPROCESSABLE_ENTITY, ex.getMessage());
         }
     }
 

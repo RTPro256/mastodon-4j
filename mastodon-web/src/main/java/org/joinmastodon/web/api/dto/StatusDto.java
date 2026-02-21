@@ -21,5 +21,12 @@ public record StatusDto(
         @JsonProperty("mentions") List<MentionDto> mentions,
         @JsonProperty("tags") List<TagDto> tags,
         @JsonProperty("poll") PollDto poll,
-        @JsonProperty("reblog") StatusDto reblog) {
+        @JsonProperty("reblog") StatusDto reblog,
+        @JsonProperty("favourites_count") int favouritesCount,
+        @JsonProperty("reblogs_count") int reblogsCount,
+        @JsonProperty("replies_count") int repliesCount,
+        @JsonProperty("favourited") boolean favourited,
+        @JsonProperty("reblogged") boolean reblogged,
+        @JsonProperty("bookmarked") boolean bookmarked,
+        @JsonProperty("pinned") boolean pinned) {
 }

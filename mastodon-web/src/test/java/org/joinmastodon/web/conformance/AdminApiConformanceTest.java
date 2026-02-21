@@ -1,9 +1,7 @@
 package org.joinmastodon.web.conformance;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.Application;
-import org.joinmastodon.core.entity.Report;
 import org.joinmastodon.core.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,13 +9,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-
-import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

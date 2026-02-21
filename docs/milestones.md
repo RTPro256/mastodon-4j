@@ -329,3 +329,103 @@ Completed sub-tasks (Milestone 8):
 - UI parity for core user flows and admin console.
 - Federation interoperability with at least 3 external Mastodon instances.
 - Postgres-only operation with documented scaling limits.
+
+---
+
+## Extended Features (Post-Release)
+
+These milestones extend mastodon_4j with advanced features while maintaining full compatibility with upstream Mastodon. See [Extended Features Plan](./extended-features-plan.md) for detailed specifications.
+
+### Milestone 9 — Quick Setup & Resource Management (8-10 weeks)
+Deliverables:
+- Express setup system for rapid deployment
+- Script-based configuration for reproducible setups
+- Resource allocation (CPU, GPU, network, memory)
+
+Checklist:
+- [ ] `mastodon-setup` (2w): Setup CLI, configuration parser, templates
+- [ ] `mastodon-resources` (2w): CPU allocation, GPU acceleration, network management
+- [ ] `mastodon-web` (2w): Setup API endpoints and admin UI
+- [ ] `mastodon-core` (2w): Resource monitoring and reporting
+- [ ] Documentation (2w): Setup guides, configuration reference
+
+### Milestone 10 — Distributed Architecture (8-10 weeks)
+Deliverables:
+- Multi-node cluster support for horizontal scaling
+- Workload distribution and load balancing
+- Fault tolerance and failover
+
+Checklist:
+- [ ] `mastodon-cluster` (4w): Node discovery, state sync, event bus
+- [ ] `mastodon-core` (2w): Cluster-aware services
+- [ ] `mastodon-jobs` (2w): Distributed job queue
+- [ ] `mastodon-streaming` (2w): Cluster-wide streaming
+- [ ] Documentation (2w): Cluster setup, scaling guide
+
+### Milestone 11 — Content Access Control (6-8 weeks)
+Deliverables:
+- Private content with permission-based access
+- Server-level access policies
+- Enhanced visibility controls
+
+Checklist:
+- [ ] `mastodon-core` (3w): ContentAccess, ContentPermission entities
+- [ ] `mastodon-web` (2w): Access control API endpoints
+- [ ] `mastodon-activitypub` (2w): Federation-aware access control
+- [ ] `mastodon-ui` (2w): Access control UI components
+- [ ] Documentation (1w): Access control configuration
+
+### Milestone 12 — Federation Index (6-8 weeks)
+Deliverables:
+- Server index database with ratings
+- Index sharing between trusted instances
+- Restriction tracking with reasons
+
+Checklist:
+- [ ] `mastodon-federation-index` (3w): Entities, repositories, services
+- [ ] `mastodon-core` (2w): Server index integration
+- [ ] `mastodon-web` (2w): Index API endpoints
+- [ ] `mastodon-ui` (2w): Server directory UI
+- [ ] Documentation (1w): Index configuration and sharing
+
+### Milestone 13 — BitTorrent Integration (12-16 weeks)
+Deliverables:
+- qBittorrent refactored to Java/Spring Boot
+- Media distribution via BitTorrent
+- Federation content sync
+
+Checklist:
+- [ ] `mastodon-torrent` (6w): Core torrent client, DHT, trackers
+- [ ] `mastodon-torrent` (3w): Peer management, storage
+- [ ] `mastodon-media` (2w): Media-torrent bridge
+- [ ] `mastodon-federation` (2w): Torrent federation sync
+- [ ] `mastodon-web` (2w): Torrent management API
+- [ ] Documentation (2w): Torrent configuration, seeding policies
+
+### Milestone 14 — Content Authority System (8-10 weeks)
+Deliverables:
+- Server as Certificate Authority for content authentication
+- Cryptographic signatures for statuses, media, and federated content
+- Content verification metadata with server location
+- External verification of content authenticity
+
+Checklist:
+- [ ] `mastodon-content-authority` (2w): CA infrastructure, key management, certificate generation
+- [ ] `mastodon-content-authority` (2w): Content signing service with signature algorithms
+- [ ] `mastodon-content-authority` (2w): Verification and revocation system (CRL, OCSP)
+- [ ] `mastodon-federation` (2w): Authority discovery, cross-signing, trust store
+- [ ] `mastodon-web` (1w): Authority API endpoints and admin UI
+- [ ] Documentation (1w): CA configuration, trust policies, verification guide
+
+---
+
+## Extended Exit Criteria
+
+In addition to base exit criteria:
+
+1. **Setup**: New instance operational in < 5 minutes with express setup
+2. **Scalability**: Linear performance scaling up to 10 cluster nodes
+3. **Federation Index**: 95% accuracy in server availability tracking
+4. **Torrent Integration**: 50% bandwidth reduction for popular media
+5. **Compatibility**: 100% pass rate on Mastodon API conformance tests
+6. **Non-Breaking**: All extended features behind feature flags

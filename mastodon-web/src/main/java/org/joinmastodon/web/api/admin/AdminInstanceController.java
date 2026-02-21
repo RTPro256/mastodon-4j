@@ -1,7 +1,5 @@
 package org.joinmastodon.web.api.admin;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.joinmastodon.web.api.ApiVersion;
 import org.joinmastodon.web.auth.AdminOnly;
 import org.springframework.beans.factory.annotation.Value;

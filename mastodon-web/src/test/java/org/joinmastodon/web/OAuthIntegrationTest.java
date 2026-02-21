@@ -8,15 +8,16 @@ import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.User;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.joinmastodon.web.config.TestSecurityConfig;
+import org.joinmastodon.web.conformance.SharedPostgresContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,39 +33,22 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
+@Import(TestSecurityConfig.class)
 class OAuthIntegrationTest {
-
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("mastodon_test")
-            .withUsername("mastodon")
-            .withPassword("mastodon");
-
-    private static final AtomicBoolean MIGRATED = new AtomicBoolean(false);
 
     @DynamicPropertySource
     static void registerDataSource(DynamicPropertyRegistry registry) {
-        if (!POSTGRES.isRunning()) {
-            POSTGRES.start();
-        }
-        if (MIGRATED.compareAndSet(false, true)) {
-            Flyway.configure()
-                    .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
-                    .locations("classpath:db/migration")
-                    .load()
-                    .migrate();
-        }
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES::getUsername);
-        registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("spring.datasource.driver-class-name", POSTGRES::getDriverClassName);
+        // Start and migrate the shared container
+        SharedPostgresContainer.startAndMigrate();
+
+        // Register datasource properties
+        registry.add("spring.datasource.url", SharedPostgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", SharedPostgresContainer::getUsername);
+        registry.add("spring.datasource.password", SharedPostgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", SharedPostgresContainer::getDriverClassName);
     }
 
     @Value("${local.server.port}")

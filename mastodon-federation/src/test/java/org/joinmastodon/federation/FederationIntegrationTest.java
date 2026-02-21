@@ -1,12 +1,19 @@
 package org.joinmastodon.federation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.joinmastodon.activitypub.model.Actor;
+import org.joinmastodon.activitypub.signature.HttpSignatureVerifier;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.service.AccountService;
+import org.joinmastodon.core.service.StatusService;
 import org.joinmastodon.federation.config.FederationProperties;
+import org.joinmastodon.federation.model.WebFingerLink;
+import org.joinmastodon.federation.model.WebFingerResponse;
+import org.joinmastodon.federation.service.ActivityDispatcher;
 import org.joinmastodon.federation.service.ActivityPubMapper;
 import org.joinmastodon.federation.service.RemoteActorService;
+import org.joinmastodon.federation.service.WebFingerService;
 import org.joinmastodon.federation.web.ActorController;
 import org.joinmastodon.federation.web.InboxController;
 import org.joinmastodon.federation.web.OutboxController;
@@ -14,16 +21,17 @@ import org.joinmastodon.federation.web.WebFingerController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,6 +48,9 @@ class FederationIntegrationTest {
     private AccountService accountService;
 
     @Mock
+    private StatusService statusService;
+
+    @Mock
     private ActivityPubMapper activityPubMapper;
 
     @Mock
@@ -48,25 +59,39 @@ class FederationIntegrationTest {
     @Mock
     private FederationProperties federationProperties;
 
-    @InjectMocks
+    @Mock
+    private ActivityDispatcher activityDispatcher;
+
+    @Mock
+    private HttpSignatureVerifier signatureVerifier;
+
+    @Mock
+    private WebFingerService webFingerService;
+
     private ActorController actorController;
-
-    @InjectMocks
     private InboxController inboxController;
-
-    @InjectMocks
     private OutboxController outboxController;
-
-    @InjectMocks
     private WebFingerController webFingerController;
 
     private MockMvc mockMvc;
     private Account testAccount;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        // Setup MockMvc for all controllers
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        // Create controllers with proper constructor injection
+        actorController = new ActorController(accountService, activityPubMapper);
+        inboxController = new InboxController(accountService, remoteActorService, activityDispatcher, signatureVerifier, federationProperties);
+        outboxController = new OutboxController(accountService, statusService, activityPubMapper);
+        webFingerController = new WebFingerController(webFingerService);
+
+        // Setup MockMvc for all controllers with proper message converter
+        JacksonJsonHttpMessageConverter converter = new JacksonJsonHttpMessageConverter();
         mockMvc = MockMvcBuilders.standaloneSetup(actorController, inboxController, outboxController, webFingerController)
+                .setMessageConverters(converter)
                 .build();
 
         testAccount = new Account();
@@ -78,8 +103,8 @@ class FederationIntegrationTest {
         testAccount.setFollowersCount(10);
         testAccount.setFollowingCount(5);
 
-        when(federationProperties.getBaseUrl()).thenReturn("https://example.com");
-        when(federationProperties.getDomain()).thenReturn("example.com");
+        lenient().when(federationProperties.getBaseUrl()).thenReturn("https://example.com");
+        lenient().when(federationProperties.getDomain()).thenReturn("example.com");
     }
 
     @Test
@@ -190,8 +215,15 @@ class FederationIntegrationTest {
 
     @Test
     void webfinger_shouldReturnResponseForLocalUser() throws Exception {
-        when(accountService.findByUsernameAndDomain("testuser", null))
-                .thenReturn(Optional.of(testAccount));
+        WebFingerResponse response = new WebFingerResponse();
+        response.setSubject("acct:testuser@example.com");
+        response.setLinks(List.of(
+                new WebFingerLink("self", "application/activity+json", "https://example.com/users/testuser"),
+                new WebFingerLink("profile", "text/html", "https://example.com/@testuser")
+        ));
+        
+        when(webFingerService.resolve("acct:testuser@example.com"))
+                .thenReturn(Optional.of(response));
 
         mockMvc.perform(get("/.well-known/webfinger")
                         .param("resource", "acct:testuser@example.com"))
@@ -201,7 +233,7 @@ class FederationIntegrationTest {
 
     @Test
     void webfinger_shouldReturn404ForNonExistentUser() throws Exception {
-        when(accountService.findByUsernameAndDomain("nonexistent", null))
+        when(webFingerService.resolve("acct:nonexistent@example.com"))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/.well-known/webfinger")
@@ -211,6 +243,9 @@ class FederationIntegrationTest {
 
     @Test
     void webfinger_shouldReturn404ForWrongDomain() throws Exception {
+        when(webFingerService.resolve("acct:testuser@otherdomain.com"))
+                .thenReturn(Optional.empty());
+
         mockMvc.perform(get("/.well-known/webfinger")
                         .param("resource", "acct:testuser@otherdomain.com"))
                 .andExpect(status().isNotFound());

@@ -40,6 +40,14 @@
         <module>mastodon-jobs</module>
         <module>mastodon-streaming</module>
         <module>mastodon-ui</module>
+        <!-- Extended Features Modules (Milestone 9+) -->
+        <module>mastodon-setup</module>
+        <module>mastodon-resources</module>
+        <module>mastodon-cluster</module>
+        <module>mastodon-content-access</module>
+        <module>mastodon-federation-index</module>
+        <module>mastodon-torrent</module>
+        <module>mastodon-content-authority</module>
     </modules>
 
     <dependencies>

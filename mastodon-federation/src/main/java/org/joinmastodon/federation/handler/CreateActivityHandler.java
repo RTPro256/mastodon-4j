@@ -1,7 +1,6 @@
 package org.joinmastodon.federation.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.joinmastodon.activitypub.model.Note;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.Status;
 import org.joinmastodon.core.model.Visibility;
@@ -110,7 +109,6 @@ public class CreateActivityHandler implements ActivityHandler {
         boolean isPublic = false;
         boolean isUnlisted = false;
         boolean isFollowers = false;
-        boolean isDirect = false;
 
         // Check 'to' field
         if (toNode != null && toNode.isArray()) {

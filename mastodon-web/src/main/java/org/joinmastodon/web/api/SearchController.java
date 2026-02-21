@@ -2,7 +2,6 @@ package org.joinmastodon.web.api;
 
 import java.util.List;
 import org.joinmastodon.core.entity.Tag;
-import org.joinmastodon.core.model.Visibility;
 import org.joinmastodon.core.service.SearchService;
 import org.joinmastodon.core.service.StatusVisibilityService;
 import org.joinmastodon.web.api.dto.AccountDto;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(ApiVersion.V2 + "/search")
+@RequestMapping
 public class SearchController {
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 40;
@@ -33,13 +32,25 @@ public class SearchController {
         this.statusVisibilityService = statusVisibilityService;
     }
 
-    @GetMapping
-    public SearchResultsDto search(
-            @RequestParam("q") String query,
+    @GetMapping(ApiVersion.V2 + "/search")
+    public SearchResultsDto searchV2(
+            @RequestParam(value = "q") String query,
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "offset", required = false) Integer offset) {
-        
+        return doSearch(query, type, limit, offset);
+    }
+
+    @GetMapping(ApiVersion.V1 + "/search")
+    public SearchResultsDto searchV1(
+            @RequestParam(value = "q") String query,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @RequestParam(value = "offset", required = false) Integer offset) {
+        return doSearch(query, type, limit, offset);
+    }
+
+    private SearchResultsDto doSearch(String query, String type, Integer limit, Integer offset) {
         int resolvedLimit = limit == null ? DEFAULT_LIMIT : Math.min(Math.max(limit, 1), MAX_LIMIT);
         Pageable pageable = PageRequest.of(offset != null ? offset / resolvedLimit : 0, resolvedLimit);
 

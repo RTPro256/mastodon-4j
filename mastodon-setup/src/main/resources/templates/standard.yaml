@@ -1,0 +1,30 @@
+# Standard Community Server Configuration
+# Use this for a typical community instance
+
+server:
+  domain: example.social
+  name: "Example Social"
+  description: "A friendly Mastodon community instance"
+  admin_email: admin@example.social
+  registrations_open: true
+  approval_required: false
+
+resources:
+  cpu_cores: 4
+  memory_gb: 8
+  gpu_enabled: false
+  network_adapters:
+    - name: eth0
+      priority: 1
+      bandwidth_limit: 1GB
+
+content:
+  default_visibility: public
+  private_content_enabled: true
+  federation_mode: open
+
+federation_index:
+  enabled: true
+  share_ratings: true
+  share_restrictions: false
+  trusted_partners: []

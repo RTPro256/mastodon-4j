@@ -1,7 +1,6 @@
 package org.joinmastodon.federation.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.joinmastodon.activitypub.model.ActivityType;
 import org.joinmastodon.activitypub.signature.HttpSignature;
@@ -15,7 +14,6 @@ import org.joinmastodon.activitypub.signature.PemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,20 +36,17 @@ import java.util.Optional;
 public class InboxController {
     private static final Logger log = LoggerFactory.getLogger(InboxController.class);
 
-    private final ObjectMapper objectMapper;
     private final AccountService accountService;
     private final RemoteActorService remoteActorService;
     private final ActivityDispatcher activityDispatcher;
     private final HttpSignatureVerifier signatureVerifier;
     private final FederationProperties properties;
 
-    public InboxController(ObjectMapper objectMapper,
-                          AccountService accountService,
+    public InboxController(AccountService accountService,
                           RemoteActorService remoteActorService,
                           ActivityDispatcher activityDispatcher,
                           HttpSignatureVerifier signatureVerifier,
                           FederationProperties properties) {
-        this.objectMapper = objectMapper;
         this.accountService = accountService;
         this.remoteActorService = remoteActorService;
         this.activityDispatcher = activityDispatcher;

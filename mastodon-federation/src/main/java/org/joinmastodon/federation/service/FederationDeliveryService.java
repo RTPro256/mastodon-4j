@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joinmastodon.activitypub.signature.DigestUtils;
 import org.joinmastodon.activitypub.signature.HttpSignatureSigner;
 import org.joinmastodon.core.entity.Account;
-import org.joinmastodon.federation.config.FederationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -30,17 +29,14 @@ public class FederationDeliveryService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final FederationKeyService keyService;
-    private final FederationProperties properties;
     private final HttpSignatureSigner signatureSigner;
 
     public FederationDeliveryService(HttpClient httpClient,
                                      ObjectMapper objectMapper,
-                                     FederationKeyService keyService,
-                                     FederationProperties properties) {
+                                     FederationKeyService keyService) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.keyService = keyService;
-        this.properties = properties;
         this.signatureSigner = new HttpSignatureSigner();
     }
 

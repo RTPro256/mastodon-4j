@@ -1,24 +1,26 @@
 package org.joinmastodon.federation.interop;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.joinmastodon.activitypub.model.Create;
 import org.joinmastodon.activitypub.model.Follow;
 import org.joinmastodon.activitypub.model.LikeActivity;
 import org.joinmastodon.activitypub.model.Note;
+import org.joinmastodon.activitypub.signature.HttpSignatureVerifier;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.service.AccountService;
 import org.joinmastodon.federation.config.FederationProperties;
 import org.joinmastodon.federation.service.ActivityDispatcher;
+import org.joinmastodon.federation.service.RemoteActorService;
 import org.joinmastodon.federation.web.InboxController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -26,9 +28,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,7 +52,12 @@ class InboxDeliveryTest {
     @Mock
     private ActivityDispatcher activityDispatcher;
 
-    @InjectMocks
+    @Mock
+    private RemoteActorService remoteActorService;
+
+    @Mock
+    private HttpSignatureVerifier signatureVerifier;
+
     private InboxController inboxController;
 
     private MockMvc mockMvc;
@@ -61,9 +66,15 @@ class InboxDeliveryTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(inboxController).build();
         objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
+        objectMapper.registerModule(new JavaTimeModule());
+        
+        inboxController = new InboxController(accountService, remoteActorService, activityDispatcher, signatureVerifier, federationProperties);
+        
+        JacksonJsonHttpMessageConverter converter = new JacksonJsonHttpMessageConverter();
+        mockMvc = MockMvcBuilders.standaloneSetup(inboxController)
+                .setMessageConverters(converter)
+                .build();
 
         localAccount = new Account();
         localAccount.setId(1L);
@@ -71,9 +82,9 @@ class InboxDeliveryTest {
         localAccount.setAcct("alice");
         localAccount.setLocalAccount(true);
 
-        when(federationProperties.getDomain()).thenReturn("example.com");
-        when(federationProperties.getBaseUrl()).thenReturn("https://example.com");
-        when(federationProperties.isRequireSignatures()).thenReturn(false);
+        lenient().when(federationProperties.getDomain()).thenReturn("example.com");
+        lenient().when(federationProperties.getBaseUrl()).thenReturn("https://example.com");
+        lenient().when(federationProperties.isRequireSignatures()).thenReturn(false);
     }
 
     @Nested

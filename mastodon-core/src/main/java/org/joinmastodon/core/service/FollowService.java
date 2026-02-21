@@ -58,6 +58,11 @@ public class FollowService {
         Follow follow = new Follow();
         follow.setAccount(account);
         follow.setTargetAccount(target);
+        // If target account is locked, create a pending follow request
+        if (target.isLocked()) {
+            follow.setPending(true);
+            return followRepository.save(follow);
+        }
         Follow saved = followRepository.save(follow);
         account.setFollowingCount(account.getFollowingCount() + 1);
         target.setFollowersCount(target.getFollowersCount() + 1);
@@ -70,10 +75,41 @@ public class FollowService {
     public void unfollow(Account account, Account target) {
         followRepository.findByAccountAndTargetAccount(account, target).ifPresent(follow -> {
             followRepository.delete(follow);
-            account.setFollowingCount(Math.max(0, account.getFollowingCount() - 1));
-            target.setFollowersCount(Math.max(0, target.getFollowersCount() - 1));
-            accountService.save(account);
-            accountService.save(target);
+            if (!follow.isPending()) {
+                account.setFollowingCount(Math.max(0, account.getFollowingCount() - 1));
+                target.setFollowersCount(Math.max(0, target.getFollowersCount() - 1));
+                accountService.save(account);
+                accountService.save(target);
+            }
         });
+    }
+
+    @Transactional(readOnly = true)
+    public List<Follow> findPendingFollowRequests(Account target) {
+        return followRepository.findByTargetAccountAndPendingTrue(target);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Follow> findPendingFollowRequest(Account account, Account target) {
+        return followRepository.findByAccountAndTargetAccountAndPendingTrue(account, target);
+    }
+
+    @Transactional
+    public void acceptFollowRequest(Account account, Account target) {
+        followRepository.findByAccountAndTargetAccountAndPendingTrue(account, target)
+                .ifPresent(follow -> {
+                    follow.setPending(false);
+                    followRepository.save(follow);
+                    account.setFollowingCount(account.getFollowingCount() + 1);
+                    target.setFollowersCount(target.getFollowersCount() + 1);
+                    accountService.save(account);
+                    accountService.save(target);
+                });
+    }
+
+    @Transactional
+    public void rejectFollowRequest(Account account, Account target) {
+        followRepository.findByAccountAndTargetAccountAndPendingTrue(account, target)
+                .ifPresent(followRepository::delete);
     }
 }

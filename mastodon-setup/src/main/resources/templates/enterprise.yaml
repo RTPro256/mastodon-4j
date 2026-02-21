@@ -1,0 +1,55 @@
+# Enterprise High-Availability Configuration
+# Use this for large-scale production deployments
+
+server:
+  domain: enterprise.social
+  name: "Enterprise Social"
+  description: "A large-scale Mastodon instance for enterprise use"
+  admin_email: admin@enterprise.social
+  registrations_open: true
+  approval_required: true
+
+resources:
+  cpu_cores: 16
+  memory_gb: 64
+  gpu_enabled: true
+  gpu_devices: [0, 1]
+  network_adapters:
+    - name: eth0
+      priority: 1
+      bandwidth_limit: 10GB
+    - name: eth1
+      priority: 2
+      bandwidth_limit: 10GB
+
+content:
+  default_visibility: public
+  private_content_enabled: true
+  federation_mode: limited
+
+federation_index:
+  enabled: true
+  share_ratings: true
+  share_restrictions: true
+  trusted_partners:
+    - trusted-instance.social
+    - partner.community
+
+# Additional enterprise features
+cluster:
+  enabled: true
+  node_id: node-1
+  role: hybrid
+  coordinator:
+    host: coordinator.enterprise.social
+    port: 7946
+
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  health_check_interval: 30s
+
+content_authority:
+  enabled: true
+  auto_sign_content: true
+  trust_level: FEDERATION

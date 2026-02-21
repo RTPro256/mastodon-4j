@@ -64,15 +64,25 @@ public final class ApiMapper {
     }
 
     public static StatusDto toStatusDto(Status status) {
-        return toStatusDto(status, true);
+        return toStatusDto(status, true, false, false, false, 0, 0, 0, false);
     }
 
-    private static StatusDto toStatusDto(Status status, boolean includeReblog) {
+    public static StatusDto toStatusDto(Status status, boolean favourited, boolean reblogged, boolean bookmarked) {
+        return toStatusDto(status, true, favourited, reblogged, bookmarked, 0, 0, 0, false);
+    }
+
+    public static StatusDto toStatusDto(Status status, boolean favourited, boolean reblogged, boolean bookmarked,
+                                        long favouritesCount, long reblogsCount, long repliesCount, boolean pinned) {
+        return toStatusDto(status, true, favourited, reblogged, bookmarked, favouritesCount, reblogsCount, repliesCount, pinned);
+    }
+
+    private static StatusDto toStatusDto(Status status, boolean includeReblog, boolean favourited, boolean reblogged, 
+                                         boolean bookmarked, long favouritesCount, long reblogsCount, long repliesCount, boolean pinned) {
         if (status == null) {
             return null;
         }
-        StatusDto reblog = includeReblog && status.getReblog() != null
-                ? toStatusDto(status.getReblog(), false)
+        StatusDto reblogDto = includeReblog && status.getReblog() != null
+                ? toStatusDto(status.getReblog(), false, false, false, false, 0, 0, 0, false)
                 : null;
 
         return new StatusDto(
@@ -92,7 +102,14 @@ public final class ApiMapper {
                 mapMentions(status.getMentions()),
                 mapTags(status.getTags()),
                 toPollDto(status.getPoll()),
-                reblog
+                reblogDto,
+                (int) favouritesCount,
+                (int) reblogsCount,
+                (int) repliesCount,
+                favourited,
+                reblogged,
+                bookmarked,
+                pinned
         );
     }
 

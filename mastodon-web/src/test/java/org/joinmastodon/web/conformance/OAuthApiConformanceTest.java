@@ -93,9 +93,9 @@ class OAuthApiConformanceTest extends BaseApiConformanceTest {
                         baseUrl("/api/v1/apps"),
                         new HttpEntity<>(payload, headers),
                         String.class);
-                throw new AssertionError("Expected 422 Unprocessable Entity");
+                throw new AssertionError("Expected 422 Unprocessable Content");
             } catch (HttpClientErrorException ex) {
-                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+                assertThat(ex.getStatusCode().value()).isEqualTo(422);
             }
         }
 
@@ -117,9 +117,9 @@ class OAuthApiConformanceTest extends BaseApiConformanceTest {
                         baseUrl("/api/v1/apps"),
                         new HttpEntity<>(payload, headers),
                         String.class);
-                throw new AssertionError("Expected 422 Unprocessable Entity");
+                throw new AssertionError("Expected 422 Unprocessable Content");
             } catch (HttpClientErrorException ex) {
-                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+                assertThat(ex.getStatusCode().value()).isEqualTo(422);
             }
         }
     }

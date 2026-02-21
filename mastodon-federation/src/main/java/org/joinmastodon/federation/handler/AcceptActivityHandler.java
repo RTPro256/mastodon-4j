@@ -47,7 +47,6 @@ public class AcceptActivityHandler implements ActivityHandler {
         }
 
         // Extract the original Follow activity details
-        String followId = objectNode.has("id") ? objectNode.get("id").asText() : null;
         String followActor = objectNode.has("actor") ? objectNode.get("actor").asText() : null;
         String followObject = objectNode.has("object") ? objectNode.get("object").asText() : null;
 

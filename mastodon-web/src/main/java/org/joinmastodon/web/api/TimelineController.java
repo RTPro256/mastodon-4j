@@ -1,7 +1,6 @@
 package org.joinmastodon.web.api;
 
 import java.util.List;
-import java.util.Optional;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.ListEntity;
 import org.joinmastodon.core.entity.Status;
@@ -9,6 +8,7 @@ import org.joinmastodon.core.model.Visibility;
 import org.joinmastodon.core.service.AccountService;
 import org.joinmastodon.core.service.ListService;
 import org.joinmastodon.core.service.StatusService;
+import org.joinmastodon.web.api.dto.ConversationDto;
 import org.joinmastodon.web.api.dto.StatusDto;
 import org.joinmastodon.web.auth.AuthenticatedPrincipal;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping(ApiVersion.V1 + "/timelines")
+@RequestMapping(ApiVersion.V1)
 public class TimelineController {
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 40;
@@ -40,7 +40,7 @@ public class TimelineController {
         this.listService = listService;
     }
 
-    @GetMapping("/home")
+    @GetMapping("/timelines/home")
     public ResponseEntity<List<StatusDto>> homeTimeline(
             @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "max_id", required = false) String maxId,
@@ -52,7 +52,7 @@ public class TimelineController {
                 limit);
     }
 
-    @GetMapping("/public")
+    @GetMapping("/timelines/public")
     public ResponseEntity<List<StatusDto>> publicTimeline(
             @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "max_id", required = false) String maxId,
@@ -65,7 +65,7 @@ public class TimelineController {
         return timelineResponse(statuses, ApiVersion.V1 + "/timelines/public", limit);
     }
 
-    @GetMapping("/tag/{hashtag}")
+    @GetMapping("/timelines/tag/{hashtag}")
     public ResponseEntity<List<StatusDto>> tagTimeline(
             @PathVariable("hashtag") String hashtag,
             @RequestParam(value = "limit", required = false) Integer limit,
@@ -81,7 +81,7 @@ public class TimelineController {
         return timelineResponse(statuses, ApiVersion.V1 + "/timelines/tag/" + hashtag, limit);
     }
 
-    @GetMapping("/list/{list_id}")
+    @GetMapping("/timelines/list/{list_id}")
     public ResponseEntity<List<StatusDto>> listTimeline(
             @PathVariable("list_id") String listId,
             @RequestParam(value = "limit", required = false) Integer limit,
@@ -99,6 +99,15 @@ public class TimelineController {
                 parseOptionalId(sinceId),
                 pageable(limit));
         return timelineResponse(statuses, ApiVersion.V1 + "/timelines/list/" + list.getId(), limit);
+    }
+
+    @GetMapping("/conversations")
+    public ResponseEntity<List<ConversationDto>> conversations(
+            @RequestParam(value = "limit", required = false) Integer limit) {
+        // Require authentication
+        requireAccount();
+        // Return empty list for now - conversations require complex tracking
+        return ResponseEntity.ok(List.of());
     }
 
     private ResponseEntity<List<StatusDto>> timelineResponse(List<Status> statuses, String basePath, Integer limit) {

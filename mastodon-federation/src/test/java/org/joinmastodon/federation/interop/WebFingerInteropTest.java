@@ -2,9 +2,9 @@ package org.joinmastodon.federation.interop;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.joinmastodon.core.entity.Account;
-import org.joinmastodon.core.service.AccountService;
-import org.joinmastodon.federation.config.FederationProperties;
+import org.joinmastodon.federation.model.WebFingerLink;
+import org.joinmastodon.federation.model.WebFingerResponse;
+import org.joinmastodon.federation.service.WebFingerService;
 import org.joinmastodon.federation.web.WebFingerController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,10 +18,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,32 +40,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class WebFingerInteropTest {
 
     @Mock
-    private AccountService accountService;
-
-    @Mock
-    private FederationProperties federationProperties;
+    private WebFingerService webFingerService;
 
     @InjectMocks
     private WebFingerController webFingerController;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
-    private Account testAccount;
+    private WebFingerResponse testResponse;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(webFingerController).build();
         objectMapper = new ObjectMapper();
 
-        testAccount = new Account();
-        testAccount.setId(1L);
-        testAccount.setUsername("alice");
-        testAccount.setAcct("alice");
-        testAccount.setDisplayName("Alice");
-        testAccount.setLocalAccount(true);
-
-        when(federationProperties.getDomain()).thenReturn("example.com");
-        when(federationProperties.getBaseUrl()).thenReturn("https://example.com");
+        testResponse = new WebFingerResponse();
+        testResponse.setSubject("acct:alice@example.com");
+        testResponse.setAliases(List.of("https://example.com/users/alice", "https://example.com/@alice"));
+        testResponse.setLinks(List.of(
+                new WebFingerLink("self", "application/activity+json", "https://example.com/users/alice"),
+                new WebFingerLink("http://webfinger.net/rel/profile-page", "text/html", "https://example.com/@alice")
+        ));
     }
 
     @Nested
@@ -75,8 +70,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Returns JSON response for valid resource")
         void returnsJsonForValidResource() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com")
@@ -88,7 +83,7 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Returns 404 for non-existent resource")
         void returns404ForNonExistentResource() throws Exception {
-            when(accountService.findByUsernameAndDomain("nonexistent", null))
+            when(webFingerService.resolve("acct:nonexistent@example.com"))
                     .thenReturn(Optional.empty());
 
             mockMvc.perform(get("/.well-known/webfinger")
@@ -106,6 +101,9 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Returns 404 for wrong domain")
         void returns404ForWrongDomain() throws Exception {
+            when(webFingerService.resolve("acct:alice@otherdomain.com"))
+                    .thenReturn(Optional.empty());
+
             mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@otherdomain.com"))
                     .andExpect(status().isNotFound());
@@ -119,8 +117,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Includes subject field")
         void includesSubjectField() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             MvcResult result = mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
@@ -135,8 +133,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Includes aliases field")
         void includesAliasesField() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             MvcResult result = mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
@@ -151,8 +149,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Includes links field")
         void includesLinksField() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             MvcResult result = mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
@@ -167,8 +165,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Includes self link with ActivityPub profile")
         void includesSelfLinkWithActivityPubProfile() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             MvcResult result = mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
@@ -193,8 +191,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Includes profile link")
         void includesProfileLink() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             MvcResult result = mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
@@ -224,8 +222,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Accepts resource parameter with acct: scheme")
         void acceptsAcctScheme() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
@@ -236,8 +234,8 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Handles case-insensitive username lookup")
         void handlesCaseInsensitiveUsername() throws Exception {
-            when(accountService.findByUsernameAndDomain(anyString(), any()))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve(anyString()))
+                    .thenReturn(Optional.of(testResponse));
 
             mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:ALICE@example.com"))
@@ -247,15 +245,16 @@ class WebFingerInteropTest {
         @Test
         @DisplayName("Returns correct content type")
         void returnsCorrectContentType() throws Exception {
-            when(accountService.findByUsernameAndDomain("alice", null))
-                    .thenReturn(Optional.of(testAccount));
+            when(webFingerService.resolve("acct:alice@example.com"))
+                    .thenReturn(Optional.of(testResponse));
 
             mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:alice@example.com"))
                     .andExpect(status().isOk())
                     .andExpect(result -> {
                         String contentType = result.getResponse().getContentType();
-                        assertThat(contentType).contains("application/json");
+                        // WebFinger returns application/jrd+json per RFC 7033
+                        assertThat(contentType).contains("application/jrd+json");
                     });
         }
     }
@@ -268,14 +267,8 @@ class WebFingerInteropTest {
         @DisplayName("Returns 404 for remote users")
         void returns404ForRemoteUsers() throws Exception {
             // WebFinger should only return local users
-            Account remoteAccount = new Account();
-            remoteAccount.setId(2L);
-            remoteAccount.setUsername("bob");
-            remoteAccount.setAcct("bob@remote.example");
-            remoteAccount.setLocalAccount(false);
-
-            when(accountService.findByUsernameAndDomain("bob", "remote.example"))
-                    .thenReturn(Optional.of(remoteAccount));
+            when(webFingerService.resolve("acct:bob@remote.example"))
+                    .thenReturn(Optional.empty());
 
             mockMvc.perform(get("/.well-known/webfinger")
                             .param("resource", "acct:bob@remote.example"))

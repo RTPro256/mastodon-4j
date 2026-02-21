@@ -85,6 +85,12 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
 
     Optional<Status> findByAccountAndReblog(Account account, Status reblog);
 
+    @Query("SELECT s FROM Status s JOIN FETCH s.account WHERE s.reblog = :reblog")
+    List<Status> findByReblogWithAccount(@Param("reblog") Status reblog);
+
+    @Query("SELECT s FROM Status s JOIN FETCH s.account JOIN s.reblog r WHERE r.id = :reblogId")
+    List<Status> findByReblogIdWithAccount(@Param("reblogId") Long reblogId);
+
     List<Status> findByInReplyToIdOrderByIdAsc(Long inReplyToId);
 
     Optional<Status> findByUri(String uri);
@@ -104,4 +110,8 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
             ORDER BY s.createdAt DESC
             """)
     List<Status> searchByContentLike(@Param("query") String query, Pageable pageable);
+
+    long countByReblogId(Long reblogId);
+
+    long countByInReplyToId(Long inReplyToId);
 }

@@ -11,6 +11,7 @@ import java.util.Set;
 import org.joinmastodon.core.entity.OAuthAccessToken;
 import org.joinmastodon.core.entity.User;
 import org.joinmastodon.core.service.OAuthAccessTokenService;
+import org.joinmastodon.core.repository.UserRepository;
 import org.joinmastodon.web.api.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,9 +23,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
     private final OAuthAccessTokenService accessTokenService;
+    private final UserRepository userRepository;
 
-    public BearerTokenAuthenticationFilter(OAuthAccessTokenService accessTokenService) {
+    public BearerTokenAuthenticationFilter(OAuthAccessTokenService accessTokenService, UserRepository userRepository) {
         this.accessTokenService = accessTokenService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -51,6 +54,17 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
             Long accountId = user != null && user.getAccount() != null ? user.getAccount().getId() : null;
             Long applicationId = token.getApplication() != null ? token.getApplication().getId() : null;
             User.Role role = user != null ? user.getRole() : User.Role.USER;
+            
+            // Track last known IP for authenticated users
+            if (user != null) {
+                String clientIp = extractClientIp(request);
+                if (clientIp != null && !clientIp.equals(user.getLastSignInIp())) {
+                    user.setLastSignInIp(clientIp);
+                    user.setLastSignInAt(Instant.now());
+                    userRepository.save(user);
+                }
+            }
+            
             AuthenticatedPrincipal principal = new AuthenticatedPrincipal(userId, accountId, applicationId, scopes, role);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(principal, tokenValue, authorities);
@@ -58,6 +72,21 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // X-Forwarded-For can contain multiple IPs, take the first one
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 
     private void writeUnauthorized(HttpServletResponse response, String message) throws IOException {

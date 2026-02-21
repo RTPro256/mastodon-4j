@@ -7,5 +7,7 @@ public record RelationshipDto(
         @JsonProperty("following") boolean following,
         @JsonProperty("followed_by") boolean followedBy,
         @JsonProperty("blocking") boolean blocking,
-        @JsonProperty("muting") boolean muting) {
+        @JsonProperty("muting") boolean muting,
+        @JsonProperty("requested") boolean requested,
+        @JsonProperty("domain_blocking") boolean domainBlocking) {
 }

@@ -39,6 +39,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.joinmastodon</groupId>
+            <artifactId>mastodon-setup</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.joinmastodon</groupId>
+            <artifactId>mastodon-resources</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>

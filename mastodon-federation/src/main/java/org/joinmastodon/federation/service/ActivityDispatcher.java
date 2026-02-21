@@ -1,7 +1,6 @@
 package org.joinmastodon.federation.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joinmastodon.activitypub.model.ActivityType;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.federation.handler.AcceptActivityHandler;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 public class ActivityDispatcher {
     private static final Logger log = LoggerFactory.getLogger(ActivityDispatcher.class);
 
-    private final ObjectMapper objectMapper;
     private final FollowActivityHandler followActivityHandler;
     private final AcceptActivityHandler acceptActivityHandler;
     private final RejectActivityHandler rejectActivityHandler;
@@ -36,8 +34,7 @@ public class ActivityDispatcher {
     private final DeleteActivityHandler deleteActivityHandler;
     private final UpdateActivityHandler updateActivityHandler;
 
-    public ActivityDispatcher(ObjectMapper objectMapper,
-                              FollowActivityHandler followActivityHandler,
+    public ActivityDispatcher(FollowActivityHandler followActivityHandler,
                               AcceptActivityHandler acceptActivityHandler,
                               RejectActivityHandler rejectActivityHandler,
                               UndoActivityHandler undoActivityHandler,
@@ -46,7 +43,6 @@ public class ActivityDispatcher {
                               LikeActivityHandler likeActivityHandler,
                               DeleteActivityHandler deleteActivityHandler,
                               UpdateActivityHandler updateActivityHandler) {
-        this.objectMapper = objectMapper;
         this.followActivityHandler = followActivityHandler;
         this.acceptActivityHandler = acceptActivityHandler;
         this.rejectActivityHandler = rejectActivityHandler;

@@ -2,7 +2,6 @@ package org.joinmastodon.web.api;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.ListAccount;
 import org.joinmastodon.core.entity.ListEntity;

@@ -1,11 +1,15 @@
 package org.joinmastodon.activitypub.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Note {
+    @JsonProperty("@context")
+    private Object context = ActivityPubContext.DEFAULT;
+
     private String id;
     private String type = "Note";
     private String attributedTo;
@@ -13,6 +17,14 @@ public class Note {
     private Instant published;
     private List<String> to;
     private List<String> cc;
+
+    public Object getContext() {
+        return context;
+    }
+
+    public void setContext(Object context) {
+        this.context = context;
+    }
 
     public String getId() {
         return id;

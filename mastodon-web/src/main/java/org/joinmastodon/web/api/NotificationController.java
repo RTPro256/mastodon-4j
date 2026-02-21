@@ -86,14 +86,14 @@ public class NotificationController {
     }
 
     @PostMapping("/clear")
-    public ResponseEntity<Void> clearNotifications() {
+    public ResponseEntity<String> clearNotifications() {
         Account account = requireAccount();
         notificationService.clear(account);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("{}");
     }
 
     @PostMapping("/{id}/dismiss")
-    public ResponseEntity<Void> dismissNotification(@PathVariable("id") String id) {
+    public ResponseEntity<String> dismissNotification(@PathVariable("id") String id) {
         Account account = requireAccount();
         Notification notification = notificationService.findById(parseId(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
@@ -101,7 +101,7 @@ public class NotificationController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
         notificationService.delete(notification);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("{}");
     }
 
     private long parseId(String id) {

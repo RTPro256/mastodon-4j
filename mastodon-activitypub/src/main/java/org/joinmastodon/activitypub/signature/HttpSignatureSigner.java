@@ -38,9 +38,19 @@ public class HttpSignatureSigner {
                 joiner.add("(request-target): " + method.toLowerCase(Locale.ROOT) + " " + path);
                 continue;
             }
+            // Case-insensitive header lookup
             String value = headers.get(lower);
             if (value == null) {
                 value = headers.get(header);
+            }
+            if (value == null) {
+                // Try to find header with case-insensitive matching
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    if (entry.getKey().toLowerCase(Locale.ROOT).equals(lower)) {
+                        value = entry.getValue();
+                        break;
+                    }
+                }
             }
             if (value == null) {
                 throw new IllegalArgumentException("Missing header for signature: " + header);

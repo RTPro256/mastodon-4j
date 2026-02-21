@@ -46,6 +46,21 @@ public class User {
     @Column(name = "last_sign_in_at")
     private Instant lastSignInAt;
 
+    @Column(name = "last_sign_in_ip", length = 45)
+    private String lastSignInIp;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
+    @Column(name = "confirmed")
+    private boolean confirmed = false;
+
+    @Column(name = "approved")
+    private boolean approved = true;
+
+    @Column(name = "approval_required")
+    private boolean approvalRequired = false;
+
     @Column(nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
@@ -111,6 +126,46 @@ public class User {
 
     public void setLastSignInAt(Instant lastSignInAt) {
         this.lastSignInAt = lastSignInAt;
+    }
+
+    public String getLastSignInIp() {
+        return lastSignInIp;
+    }
+
+    public void setLastSignInIp(String lastSignInIp) {
+        this.lastSignInIp = lastSignInIp;
+    }
+
+    public Instant getConfirmedAt() {
+        return confirmedAt;
+    }
+
+    public void setConfirmedAt(Instant confirmedAt) {
+        this.confirmedAt = confirmedAt;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public boolean isApproved() {
+        return approved;
+    }
+
+    public void setApproved(boolean approved) {
+        this.approved = approved;
+    }
+
+    public boolean isApprovalRequired() {
+        return approvalRequired;
+    }
+
+    public void setApprovalRequired(boolean approvalRequired) {
+        this.approvalRequired = approvalRequired;
     }
 
     public Role getRole() {

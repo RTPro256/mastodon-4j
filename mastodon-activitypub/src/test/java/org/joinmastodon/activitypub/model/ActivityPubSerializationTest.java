@@ -2,6 +2,7 @@ package org.joinmastodon.activitypub.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,7 @@ class ActivityPubSerializationTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.findAndRegisterModules();
     }
 
@@ -51,7 +53,13 @@ class ActivityPubSerializationTest {
             String json = objectMapper.writeValueAsString(actor);
             JsonNode node = objectMapper.readTree(json);
 
-            assertThat(node.get("@context").asText()).isEqualTo("https://www.w3.org/ns/activitystreams");
+            // @context can be a string or array - verify it contains the ActivityStreams context
+            assertThat(node.has("@context")).isTrue();
+            JsonNode contextNode = node.get("@context");
+            boolean hasActivityStreamsContext = contextNode.isArray() 
+                    ? contextNode.get(0).asText().equals("https://www.w3.org/ns/activitystreams")
+                    : contextNode.asText().equals("https://www.w3.org/ns/activitystreams");
+            assertThat(hasActivityStreamsContext).isTrue();
             assertThat(node.get("id").asText()).isEqualTo("https://example.com/users/alice");
             assertThat(node.get("type").asText()).isEqualTo("Person");
             assertThat(node.get("preferredUsername").asText()).isEqualTo("alice");
@@ -126,7 +134,13 @@ class ActivityPubSerializationTest {
             String json = objectMapper.writeValueAsString(note);
             JsonNode node = objectMapper.readTree(json);
 
-            assertThat(node.get("@context").asText()).isEqualTo("https://www.w3.org/ns/activitystreams");
+            // @context can be a string or array - verify it contains the ActivityStreams context
+            assertThat(node.has("@context")).isTrue();
+            JsonNode contextNode = node.get("@context");
+            boolean hasActivityStreamsContext = contextNode.isArray() 
+                    ? contextNode.get(0).asText().equals("https://www.w3.org/ns/activitystreams")
+                    : contextNode.asText().equals("https://www.w3.org/ns/activitystreams");
+            assertThat(hasActivityStreamsContext).isTrue();
             assertThat(node.get("id").asText()).isEqualTo("https://example.com/users/alice/statuses/123");
             assertThat(node.get("type").asText()).isEqualTo("Note");
             assertThat(node.get("content").asText()).isEqualTo("<p>Hello world!</p>");
@@ -157,7 +171,13 @@ class ActivityPubSerializationTest {
             String json = objectMapper.writeValueAsString(create);
             JsonNode node = objectMapper.readTree(json);
 
-            assertThat(node.get("@context").asText()).isEqualTo("https://www.w3.org/ns/activitystreams");
+            // @context can be a string or array - verify it contains the ActivityStreams context
+            assertThat(node.has("@context")).isTrue();
+            JsonNode contextNode = node.get("@context");
+            boolean hasActivityStreamsContext = contextNode.isArray() 
+                    ? contextNode.get(0).asText().equals("https://www.w3.org/ns/activitystreams")
+                    : contextNode.asText().equals("https://www.w3.org/ns/activitystreams");
+            assertThat(hasActivityStreamsContext).isTrue();
             assertThat(node.get("type").asText()).isEqualTo("Create");
             assertThat(node.get("actor").asText()).isEqualTo("https://example.com/users/alice");
             assertThat(node.has("object")).isTrue();
@@ -176,7 +196,13 @@ class ActivityPubSerializationTest {
             String json = objectMapper.writeValueAsString(follow);
             JsonNode node = objectMapper.readTree(json);
 
-            assertThat(node.get("@context").asText()).isEqualTo("https://www.w3.org/ns/activitystreams");
+            // @context can be a string or array - verify it contains the ActivityStreams context
+            assertThat(node.has("@context")).isTrue();
+            JsonNode contextNode = node.get("@context");
+            boolean hasActivityStreamsContext = contextNode.isArray() 
+                    ? contextNode.get(0).asText().equals("https://www.w3.org/ns/activitystreams")
+                    : contextNode.asText().equals("https://www.w3.org/ns/activitystreams");
+            assertThat(hasActivityStreamsContext).isTrue();
             assertThat(node.get("type").asText()).isEqualTo("Follow");
             assertThat(node.get("actor").asText()).isEqualTo("https://example.com/users/alice");
             assertThat(node.get("object").asText()).isEqualTo("https://example.com/users/bob");
@@ -309,7 +335,12 @@ class ActivityPubSerializationTest {
             JsonNode node = objectMapper.readTree(json);
 
             assertThat(node.has("@context")).isTrue();
-            assertThat(node.get("@context").asText()).isEqualTo("https://www.w3.org/ns/activitystreams");
+            // @context can be a string or array - verify it contains the ActivityStreams context
+            JsonNode contextNode = node.get("@context");
+            boolean hasActivityStreamsContext = contextNode.isArray() 
+                    ? contextNode.get(0).asText().equals("https://www.w3.org/ns/activitystreams")
+                    : contextNode.asText().equals("https://www.w3.org/ns/activitystreams");
+            assertThat(hasActivityStreamsContext).isTrue();
         }
     }
 }

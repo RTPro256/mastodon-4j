@@ -8,21 +8,25 @@ import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.joinmastodon.core.entity.Account;
+import org.joinmastodon.core.entity.Application;
 import org.joinmastodon.core.entity.MediaAttachment;
 import org.joinmastodon.core.entity.Mention;
+import org.joinmastodon.core.entity.OAuthAccessToken;
 import org.joinmastodon.core.entity.Poll;
 import org.joinmastodon.core.entity.PollOption;
 import org.joinmastodon.core.entity.Status;
 import org.joinmastodon.core.entity.Tag;
 import org.joinmastodon.core.entity.User;
-import org.flywaydb.core.Flyway;
+import org.joinmastodon.web.config.TestSecurityConfig;
+import org.joinmastodon.web.conformance.SharedPostgresContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,56 +35,22 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
+@Import(TestSecurityConfig.class)
 class ApiIntegrationTest {
-
-    static {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        if (os.contains("windows")) {
-            System.setProperty("ryuk.disabled", "true");
-            System.setProperty("testcontainers.ryuk.disabled", "true");
-            System.setProperty("TESTCONTAINERS_RYUK_DISABLED", "true");
-            String dockerHostEnv = System.getenv("DOCKER_HOST");
-            if (dockerHostEnv == null || dockerHostEnv.contains("docker_cli")) {
-                String dockerHost = "npipe:////./pipe/docker_engine";
-                System.setProperty("DOCKER_HOST", dockerHost);
-                System.setProperty("docker.host", dockerHost);
-                System.setProperty("docker.client.strategy",
-                        "org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy");
-            }
-        }
-    }
-
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("mastodon_test")
-            .withUsername("mastodon")
-            .withPassword("mastodon");
-
-    private static final AtomicBoolean MIGRATED = new AtomicBoolean(false);
 
     @DynamicPropertySource
     static void registerDataSource(DynamicPropertyRegistry registry) {
-        if (!POSTGRES.isRunning()) {
-            POSTGRES.start();
-        }
-        if (MIGRATED.compareAndSet(false, true)) {
-            Flyway.configure()
-                    .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
-                    .locations("classpath:db/migration")
-                    .load()
-                    .migrate();
-        }
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES::getUsername);
-        registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("spring.datasource.driver-class-name", POSTGRES::getDriverClassName);
+        // Start and migrate the shared container
+        SharedPostgresContainer.startAndMigrate();
+
+        // Register datasource properties
+        registry.add("spring.datasource.url", SharedPostgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", SharedPostgresContainer::getUsername);
+        registry.add("spring.datasource.password", SharedPostgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", SharedPostgresContainer::getDriverClassName);
     }
 
     @Value("${local.server.port}")
@@ -101,6 +71,7 @@ class ApiIntegrationTest {
     private MediaAttachment mediaAttachment;
     private Tag tag;
     private Poll poll;
+    private String accessToken;
 
     @BeforeEach
     void setup() {
@@ -108,7 +79,7 @@ class ApiIntegrationTest {
             entityManager.createNativeQuery(
                             "TRUNCATE TABLE accounts, users, statuses, follows, media_attachments, status_media_attachments, "
                                     + "tags, statuses_tags, mentions, polls, poll_options, poll_votes, notifications, applications, "
-                                    + "lists, list_accounts, filters, filter_keywords, reports, report_statuses CASCADE")
+                                    + "lists, list_accounts, filters, filter_keywords, reports, report_statuses, oauth_access_tokens CASCADE")
                     .executeUpdate();
             account = new Account();
             account.setUsername("alice");
@@ -121,6 +92,22 @@ class ApiIntegrationTest {
             user.setEmail("alice@example.test");
             user.setPasswordHash("hash");
             entityManager.persist(user);
+
+            Application app = new Application();
+            app.setName("Test App");
+            app.setClientId("test_client");
+            app.setClientSecret("test_secret");
+            app.setScopes("read write");
+            entityManager.persist(app);
+
+            OAuthAccessToken token = new OAuthAccessToken();
+            token.setToken("test_token_" + System.nanoTime());
+            token.setUser(user);
+            token.setApplication(app);
+            token.setScopes("read write");
+            token.setCreatedAt(Instant.now());
+            entityManager.persist(token);
+            accessToken = token.getToken();
 
             status = new Status();
             status.setAccount(account);
@@ -190,14 +177,14 @@ class ApiIntegrationTest {
 
     @Test
     void mediaEndpointReturnsAttachment() throws Exception {
-        JsonNode body = getJson("/api/v1/media/" + mediaAttachment.getId());
+        JsonNode body = getJsonWithAuth("/api/v1/media/" + mediaAttachment.getId(), accessToken);
         assertThat(body.path("id").asText()).isEqualTo(mediaAttachment.getId().toString());
         assertThat(body.path("type").asText()).isEqualTo("image");
     }
 
     @Test
     void pollEndpointReturnsPoll() throws Exception {
-        JsonNode body = getJson("/api/v1/polls/" + poll.getId());
+        JsonNode body = getJsonWithAuth("/api/v1/polls/" + poll.getId(), accessToken);
         assertThat(body.path("id").asText()).isEqualTo(poll.getId().toString());
         assertThat(body.path("options").path(0).path("title").asText())
                 .isEqualTo("Yes");
@@ -205,6 +192,16 @@ class ApiIntegrationTest {
 
     private JsonNode getJson(String path) throws IOException {
         ResponseEntity<String> response = restTemplate.getForEntity(baseUrl(path), String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        return objectMapper.readTree(response.getBody());
+    }
+
+    private JsonNode getJsonWithAuth(String path, String token) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(baseUrl(path), org.springframework.http.HttpMethod.GET, entity, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         return objectMapper.readTree(response.getBody());

@@ -7,13 +7,10 @@ import org.joinmastodon.core.entity.Follow;
 import org.joinmastodon.core.service.AccountService;
 import org.joinmastodon.core.service.FollowService;
 import org.joinmastodon.federation.config.FederationProperties;
-import org.joinmastodon.federation.service.ActivityPubMapper;
 import org.joinmastodon.federation.service.FederationDeliveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * Handles incoming Follow activities from remote instances.
@@ -26,18 +23,15 @@ public class FollowActivityHandler implements ActivityHandler {
     private final AccountService accountService;
     private final FollowService followService;
     private final FederationDeliveryService deliveryService;
-    private final ActivityPubMapper activityPubMapper;
     private final FederationProperties properties;
 
     public FollowActivityHandler(AccountService accountService,
                                  FollowService followService,
                                  FederationDeliveryService deliveryService,
-                                 ActivityPubMapper activityPubMapper,
                                  FederationProperties properties) {
         this.accountService = accountService;
         this.followService = followService;
         this.deliveryService = deliveryService;
-        this.activityPubMapper = activityPubMapper;
         this.properties = properties;
     }
 

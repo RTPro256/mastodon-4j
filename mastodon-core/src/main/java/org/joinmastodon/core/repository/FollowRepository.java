@@ -41,4 +41,8 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
             @Param("maxId") Long maxId,
             @Param("sinceId") Long sinceId,
             Pageable pageable);
+
+    List<Follow> findByTargetAccountAndPendingTrue(Account targetAccount);
+
+    Optional<Follow> findByAccountAndTargetAccountAndPendingTrue(Account account, Account targetAccount);
 }

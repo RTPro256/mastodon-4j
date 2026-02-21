@@ -14,7 +14,9 @@ import org.joinmastodon.core.service.BookmarkService;
 import org.joinmastodon.core.service.FavouriteService;
 import org.joinmastodon.core.service.MediaAttachmentService;
 import org.joinmastodon.core.service.StatusService;
+import org.joinmastodon.core.service.StatusStatsService;
 import org.joinmastodon.core.service.StatusVisibilityService;
+import org.joinmastodon.core.service.StatusPinService;
 import org.joinmastodon.web.streaming.StreamingNotifier;
 import org.joinmastodon.web.auth.AuthenticatedPrincipal;
 import org.joinmastodon.web.api.dto.StatusContextDto;
@@ -37,6 +39,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping(ApiVersion.V1 + "/statuses")
 public class StatusController {
     private final StatusService statusService;
+    private final StatusStatsService statusStatsService;
+    private final StatusPinService statusPinService;
     private final FavouriteService favouriteService;
     private final BookmarkService bookmarkService;
     private final AccountService accountService;
@@ -45,6 +49,8 @@ public class StatusController {
     private final StreamingNotifier streamingNotifier;
 
     public StatusController(StatusService statusService,
+                            StatusStatsService statusStatsService,
+                            StatusPinService statusPinService,
                             FavouriteService favouriteService,
                             BookmarkService bookmarkService,
                             AccountService accountService,
@@ -52,6 +58,8 @@ public class StatusController {
                             StatusVisibilityService statusVisibilityService,
                             StreamingNotifier streamingNotifier) {
         this.statusService = statusService;
+        this.statusStatsService = statusStatsService;
+        this.statusPinService = statusPinService;
         this.favouriteService = favouriteService;
         this.bookmarkService = bookmarkService;
         this.accountService = accountService;
@@ -67,7 +75,7 @@ public class StatusController {
         if (!statusVisibilityService.canView(status, currentAccountOrNull())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found");
         }
-        return ApiMapper.toStatusDto(status);
+        return toStatusDtoWithStats(status);
     }
 
     @PostMapping
@@ -105,7 +113,7 @@ public class StatusController {
         account.setStatusesCount(account.getStatusesCount() + 1);
         accountService.save(account);
         streamingNotifier.notifyStatus(saved);
-        return ApiMapper.toStatusDto(saved);
+        return toStatusDtoWithStats(saved);
     }
 
     @DeleteMapping("/{id}")
@@ -135,7 +143,7 @@ public class StatusController {
         List<StatusDto> ancestors = buildAncestors(status, viewer);
         List<StatusDto> descendants = statusService.findReplies(status.getId()).stream()
                 .filter(reply -> statusVisibilityService.canView(reply, viewer))
-                .map(ApiMapper::toStatusDto)
+                .map(this::toStatusDtoWithStats)
                 .toList();
         return new StatusContextDto(ancestors, descendants);
     }
@@ -151,7 +159,7 @@ public class StatusController {
             favourite.setStatus(status);
             return favouriteService.save(favourite);
         });
-        return ApiMapper.toStatusDto(status);
+        return toStatusDtoWithStats(status, true, false, false);
     }
 
     @PostMapping("/{id}/unfavourite")
@@ -161,7 +169,7 @@ public class StatusController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
         favouriteService.findByAccountAndStatus(account, status)
                 .ifPresent(favouriteService::delete);
-        return ApiMapper.toStatusDto(status);
+        return toStatusDtoWithStats(status, false, false, false);
     }
 
     @PostMapping("/{id}/bookmark")
@@ -175,7 +183,7 @@ public class StatusController {
             bookmark.setStatus(status);
             return bookmarkService.save(bookmark);
         });
-        return ApiMapper.toStatusDto(status);
+        return toStatusDtoWithStats(status, false, false, true);
     }
 
     @PostMapping("/{id}/unbookmark")
@@ -185,7 +193,7 @@ public class StatusController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
         bookmarkService.findByAccountAndStatus(account, status)
                 .ifPresent(bookmarkService::delete);
-        return ApiMapper.toStatusDto(status);
+        return toStatusDtoWithStats(status, false, false, false);
     }
 
     @PostMapping("/{id}/reblog")
@@ -195,7 +203,7 @@ public class StatusController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
         Optional<Status> existing = statusService.findByAccountAndReblog(account, target);
         if (existing.isPresent()) {
-            return ApiMapper.toStatusDto(existing.get());
+            return toStatusDtoWithStats(existing.get(), false, true, false);
         }
         Status reblog = new Status();
         reblog.setAccount(account);
@@ -206,7 +214,7 @@ public class StatusController {
         account.setStatusesCount(account.getStatusesCount() + 1);
         accountService.save(account);
         streamingNotifier.notifyStatus(saved);
-        return ApiMapper.toStatusDto(saved);
+        return toStatusDtoWithStats(saved, false, true, false);
     }
 
     @PostMapping("/{id}/unreblog")
@@ -220,7 +228,54 @@ public class StatusController {
                     account.setStatusesCount(Math.max(0, account.getStatusesCount() - 1));
                     accountService.save(account);
                 });
-        return ApiMapper.toStatusDto(target);
+        return toStatusDtoWithStats(target, false, false, false);
+    }
+
+    @GetMapping("/{id}/favourited_by")
+    public List<org.joinmastodon.web.api.dto.AccountDto> getFavouritedBy(@PathVariable("id") String id) {
+        long statusId = parseId(id);
+        Status status = statusService.findById(statusId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
+        if (!statusVisibilityService.canView(status, currentAccountOrNull())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found");
+        }
+        return favouriteService.findAccountsByStatusId(statusId).stream()
+                .map(ApiMapper::toAccountDto)
+                .toList();
+    }
+
+    @GetMapping("/{id}/reblogged_by")
+    public List<org.joinmastodon.web.api.dto.AccountDto> getRebloggedBy(@PathVariable("id") String id) {
+        long statusId = parseId(id);
+        Status status = statusService.findById(statusId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
+        if (!statusVisibilityService.canView(status, currentAccountOrNull())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found");
+        }
+        return statusService.findReblogAccountsByStatusId(statusId).stream()
+                .map(ApiMapper::toAccountDto)
+                .toList();
+    }
+
+    @PostMapping("/{id}/pin")
+    public StatusDto pin(@PathVariable("id") String id) {
+        Account account = requireAccount();
+        Status status = statusService.findById(parseId(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
+        if (!status.getAccount().getId().equals(account.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot pin another user's status");
+        }
+        statusPinService.pin(account, status);
+        return toStatusDtoWithStatsAndPinned(status, false, false, false, account);
+    }
+
+    @PostMapping("/{id}/unpin")
+    public StatusDto unpin(@PathVariable("id") String id) {
+        Account account = requireAccount();
+        Status status = statusService.findById(parseId(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status not found"));
+        statusPinService.unpin(account, status);
+        return toStatusDtoWithStatsAndPinned(status, false, false, false, account);
     }
 
     private long parseId(String id) {
@@ -274,11 +329,27 @@ public class StatusController {
                 break;
             }
             if (statusVisibilityService.canView(parent, viewer)) {
-                ancestors.add(0, ApiMapper.toStatusDto(parent));
+                ancestors.add(0, toStatusDtoWithStats(parent));
             }
             parentId = parent.getInReplyToId();
             guard++;
         }
         return ancestors;
+    }
+
+    private StatusDto toStatusDtoWithStats(Status status) {
+        return toStatusDtoWithStats(status, false, false, false);
+    }
+
+    private StatusDto toStatusDtoWithStats(Status status, boolean favourited, boolean reblogged, boolean bookmarked) {
+        StatusStatsService.StatusStats stats = statusStatsService.getStats(status.getId());
+        return ApiMapper.toStatusDto(status, favourited, reblogged, bookmarked, 
+                stats.favouritesCount(), stats.reblogsCount(), stats.repliesCount(), stats.pinned());
+    }
+
+    private StatusDto toStatusDtoWithStatsAndPinned(Status status, boolean favourited, boolean reblogged, boolean bookmarked, Account viewer) {
+        StatusStatsService.StatusStats stats = statusStatsService.getStats(status.getId(), viewer, status);
+        return ApiMapper.toStatusDto(status, favourited, reblogged, bookmarked, 
+                stats.favouritesCount(), stats.reblogsCount(), stats.repliesCount(), stats.pinned());
     }
 }

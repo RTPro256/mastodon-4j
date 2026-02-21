@@ -27,6 +27,25 @@ public class FavouriteService {
         return favouriteRepository.findByAccount(account);
     }
 
+    @Transactional(readOnly = true)
+    public List<Favourite> findByStatus(Status status) {
+        return favouriteRepository.findByStatusWithAccount(status);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Account> findAccountsByStatus(Status status) {
+        return favouriteRepository.findByStatusWithAccount(status).stream()
+                .map(Favourite::getAccount)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Account> findAccountsByStatusId(Long statusId) {
+        return favouriteRepository.findByStatusIdWithAccount(statusId).stream()
+                .map(Favourite::getAccount)
+                .toList();
+    }
+
     @Transactional
     public Favourite save(Favourite favourite) {
         return favouriteRepository.save(favourite);
@@ -35,5 +54,10 @@ public class FavouriteService {
     @Transactional
     public void delete(Favourite favourite) {
         favouriteRepository.delete(favourite);
+    }
+
+    @Transactional(readOnly = true)
+    public long countByStatusId(Long statusId) {
+        return favouriteRepository.countByStatusId(statusId);
     }
 }

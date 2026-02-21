@@ -3,11 +3,14 @@ package org.joinmastodon.web.api.admin;
 import java.util.List;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.AccountAction;
+import org.joinmastodon.core.entity.User;
+import org.joinmastodon.core.repository.UserRepository;
 import org.joinmastodon.core.service.AccountService;
 import org.joinmastodon.core.service.ModerationService;
 import org.joinmastodon.web.api.ApiMapper;
 import org.joinmastodon.web.api.ApiVersion;
 import org.joinmastodon.web.api.dto.AccountDto;
+import org.joinmastodon.web.api.dto.AdminAccountDto;
 import org.joinmastodon.web.auth.AdminOnly;
 import org.joinmastodon.web.auth.AuthenticatedPrincipal;
 import org.springframework.data.domain.Page;
@@ -34,14 +37,16 @@ public class AdminAccountController {
 
     private final AccountService accountService;
     private final ModerationService moderationService;
+    private final UserRepository userRepository;
 
-    public AdminAccountController(AccountService accountService, ModerationService moderationService) {
+    public AdminAccountController(AccountService accountService, ModerationService moderationService, UserRepository userRepository) {
         this.accountService = accountService;
         this.moderationService = moderationService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
-    public ResponseEntity<List<AccountDto>> listAccounts(
+    public ResponseEntity<List<AdminAccountDto>> listAccounts(
             @RequestParam(value = "local", required = false) Boolean local,
             @RequestParam(value = "remote", required = false) Boolean remote,
             @RequestParam(value = "active", required = false) Boolean active,
@@ -74,18 +79,18 @@ public class AdminAccountController {
             accounts = accountService.findAll(pageable);
         }
         
-        List<AccountDto> result = accounts.getContent().stream()
-                .map(ApiMapper::toAccountDto)
+        List<AdminAccountDto> result = accounts.getContent().stream()
+                .map(this::toAdminAccountDto)
                 .toList();
         
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountDto> getAccount(@PathVariable("id") String id) {
+    public ResponseEntity<AdminAccountDto> getAccount(@PathVariable("id") String id) {
         Account account = accountService.findById(parseId(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
-        return ResponseEntity.ok(ApiMapper.toAccountDto(account));
+        return ResponseEntity.ok(toAdminAccountDto(account));
     }
 
     @PostMapping("/{id}/action")
@@ -175,6 +180,41 @@ public class AdminAccountController {
                 action.getReason(),
                 action.getTargetAccount() != null ? String.valueOf(action.getTargetAccount().getId()) : null,
                 action.getActionTakenBy() != null ? String.valueOf(action.getActionTakenBy().getId()) : null
+        );
+    }
+
+    private AdminAccountDto toAdminAccountDto(Account account) {
+        // Get user for local accounts to include email
+        String email = null;
+        String locale = null;
+        String ip = null;
+        boolean confirmed = true;
+        boolean approved = true;
+        if (account.isLocalAccount()) {
+            User user = userRepository.findByAccount(account).orElse(null);
+            if (user != null) {
+                email = user.getEmail();
+                locale = user.getLocale();
+                ip = user.getLastSignInIp();
+                confirmed = user.isConfirmed();
+                approved = user.isApproved();
+            }
+        }
+        
+        return new AdminAccountDto(
+                String.valueOf(account.getId()),
+                account.getUsername(),
+                account.getDomain(),
+                email,
+                ip,
+                locale,
+                account.getCreatedAt(),
+                confirmed,
+                account.isSuspended(),
+                account.isSilenced(),
+                account.isDisabled(),
+                approved,
+                ApiMapper.toAccountDto(account)
         );
     }
 

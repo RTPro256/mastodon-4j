@@ -12,12 +12,14 @@ import org.joinmastodon.core.service.FollowService;
 import org.joinmastodon.core.service.MuteService;
 import org.joinmastodon.core.service.StatusService;
 import org.joinmastodon.core.service.StatusVisibilityService;
+import org.joinmastodon.core.service.UserDomainBlockService;
 import org.joinmastodon.web.auth.AuthenticatedPrincipal;
 import org.joinmastodon.web.api.dto.AccountDto;
 import org.joinmastodon.web.api.dto.RelationshipDto;
 import org.joinmastodon.web.api.dto.StatusDto;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,6 +37,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class AccountController {
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 40;
+    private static final HttpStatusCode UNPROCESSABLE_ENTITY = HttpStatusCode.valueOf(422);
 
     private final AccountService accountService;
     private final StatusService statusService;
@@ -42,19 +45,22 @@ public class AccountController {
     private final FollowService followService;
     private final BlockService blockService;
     private final MuteService muteService;
+    private final UserDomainBlockService userDomainBlockService;
 
     public AccountController(AccountService accountService,
                              StatusService statusService,
                              FollowService followService,
                              BlockService blockService,
                              MuteService muteService,
-                             StatusVisibilityService statusVisibilityService) {
+                             StatusVisibilityService statusVisibilityService,
+                             UserDomainBlockService userDomainBlockService) {
         this.accountService = accountService;
         this.statusService = statusService;
         this.followService = followService;
         this.blockService = blockService;
         this.muteService = muteService;
         this.statusVisibilityService = statusVisibilityService;
+        this.userDomainBlockService = userDomainBlockService;
     }
 
     @GetMapping("/{id}")
@@ -189,7 +195,7 @@ public class AccountController {
         Account target = accountService.findById(parseId(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
         if (account.getId().equals(target.getId())) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cannot follow self");
+            throw new ResponseStatusException(UNPROCESSABLE_ENTITY, "Cannot follow self");
         }
         followService.follow(account, target);
         return buildRelationship(account, target);
@@ -251,6 +257,57 @@ public class AccountController {
         return buildRelationship(account, target);
     }
 
+    @GetMapping("/follow_requests")
+    public List<AccountDto> getFollowRequests() {
+        Account account = requireAccount();
+        return followService.findPendingFollowRequests(account).stream()
+                .map(Follow::getAccount)
+                .map(ApiMapper::toAccountDto)
+                .toList();
+    }
+
+    @PostMapping("/follow_requests/{id}/authorize")
+    public RelationshipDto authorizeFollowRequest(@PathVariable("id") String id) {
+        Account currentAccount = requireAccount();
+        Account requester = accountService.findById(parseId(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        followService.acceptFollowRequest(requester, currentAccount);
+        return buildRelationship(currentAccount, requester);
+    }
+
+    @PostMapping("/follow_requests/{id}/reject")
+    public RelationshipDto rejectFollowRequest(@PathVariable("id") String id) {
+        Account currentAccount = requireAccount();
+        Account requester = accountService.findById(parseId(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        followService.rejectFollowRequest(requester, currentAccount);
+        return buildRelationship(currentAccount, requester);
+    }
+
+    @GetMapping("/domain_blocks")
+    public List<String> getDomainBlocks() {
+        Account account = requireAccount();
+        return userDomainBlockService.getBlockedDomains(account);
+    }
+
+    @PostMapping("/domain_blocks")
+    public void blockDomain(@RequestParam("domain") String domain) {
+        Account account = requireAccount();
+        if (domain == null || domain.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Domain is required");
+        }
+        userDomainBlockService.blockDomain(account, domain.trim().toLowerCase());
+    }
+
+    @PostMapping("/domain_blocks/unblock")
+    public void unblockDomain(@RequestParam("domain") String domain) {
+        Account account = requireAccount();
+        if (domain == null || domain.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Domain is required");
+        }
+        userDomainBlockService.unblockDomain(account, domain.trim().toLowerCase());
+    }
+
     private long parseId(String id) {
         try {
             return Long.parseLong(id);
@@ -281,17 +338,38 @@ public class AccountController {
     }
 
     private RelationshipDto buildRelationship(Account source, Account target) {
-        boolean following = followService.findByAccountAndTarget(source, target).isPresent();
-        boolean followedBy = followService.findByAccountAndTarget(target, source).isPresent();
+        boolean following = followService.findByAccountAndTarget(source, target)
+                .map(f -> !f.isPending())
+                .orElse(false);
+        boolean followedBy = followService.findByAccountAndTarget(target, source)
+                .map(f -> !f.isPending())
+                .orElse(false);
         boolean blocking = blockService.findByAccountAndTarget(source, target).isPresent();
         boolean muting = muteService.findByAccountAndTarget(source, target).isPresent();
+        boolean requested = followService.findPendingFollowRequest(source, target).isPresent();
+        String targetDomain = extractDomain(target.getAcct());
+        boolean domainBlocking = targetDomain != null && userDomainBlockService.isDomainBlocked(source, targetDomain);
         return new RelationshipDto(
                 Long.toString(target.getId()),
                 following,
                 followedBy,
                 blocking,
-                muting
+                muting,
+                requested,
+                domainBlocking
         );
+    }
+
+    private String extractDomain(String acct) {
+        if (acct == null || acct.isBlank()) {
+            return null;
+        }
+        int atIndex = acct.lastIndexOf('@');
+        if (atIndex > 0 && atIndex < acct.length() - 1) {
+            return acct.substring(atIndex + 1).toLowerCase();
+        }
+        // Local accounts don't have a domain in their acct
+        return null;
     }
 
     private AuthenticatedPrincipal currentPrincipal() {

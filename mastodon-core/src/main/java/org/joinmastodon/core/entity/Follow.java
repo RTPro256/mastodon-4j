@@ -38,6 +38,9 @@ public class Follow {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "pending", nullable = false)
+    private boolean pending = false;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
@@ -75,5 +78,13 @@ public class Follow {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isPending() {
+        return pending;
+    }
+
+    public void setPending(boolean pending) {
+        this.pending = pending;
     }
 }

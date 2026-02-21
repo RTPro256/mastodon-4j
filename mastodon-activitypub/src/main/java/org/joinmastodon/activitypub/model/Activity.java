@@ -9,12 +9,9 @@ import java.util.ArrayList;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class Activity {
-    // ActivityPub context
+    // ActivityPub context - instance field for proper serialization
     @JsonProperty("@context")
-    private static final String[] CONTEXT = {
-        "https://www.w3.org/ns/activitystreams",
-        "https://w3id.org/security/v1"
-    };
+    private Object context = ActivityPubContext.DEFAULT;
 
     // Core fields
     @JsonProperty("id")
@@ -52,6 +49,9 @@ public abstract class Activity {
     }
 
     // Getters and setters
+    public Object getContext() { return context; }
+    public void setContext(Object context) { this.context = context; }
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

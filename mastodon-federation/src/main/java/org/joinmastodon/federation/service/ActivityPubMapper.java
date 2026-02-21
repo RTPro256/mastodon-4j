@@ -3,7 +3,6 @@ package org.joinmastodon.federation.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.joinmastodon.activitypub.model.Activity;
 import org.joinmastodon.activitypub.model.Actor;
 import org.joinmastodon.activitypub.model.Create;
 import org.joinmastodon.activitypub.model.MediaLink;

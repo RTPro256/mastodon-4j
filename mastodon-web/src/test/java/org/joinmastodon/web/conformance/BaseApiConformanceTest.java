@@ -4,19 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.flywaydb.core.Flyway;
 import org.joinmastodon.core.entity.Account;
 import org.joinmastodon.core.entity.User;
-import org.joinmastodon.core.entity.Status;
-import org.joinmastodon.core.entity.MediaAttachment;
-import org.joinmastodon.core.entity.Notification;
 import org.joinmastodon.core.entity.Application;
 import org.joinmastodon.core.entity.OAuthAccessToken;
+import org.joinmastodon.web.config.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,13 +24,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,50 +36,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
+@Import(TestSecurityConfig.class)
 public abstract class BaseApiConformanceTest {
-
-    static {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        if (os.contains("windows")) {
-            System.setProperty("ryuk.disabled", "true");
-            System.setProperty("testcontainers.ryuk.disabled", "true");
-            System.setProperty("TESTCONTAINERS_RYUK_DISABLED", "true");
-            String dockerHostEnv = System.getenv("DOCKER_HOST");
-            if (dockerHostEnv == null || dockerHostEnv.contains("docker_cli")) {
-                String dockerHost = "npipe:////./pipe/docker_engine";
-                System.setProperty("DOCKER_HOST", dockerHost);
-                System.setProperty("docker.host", dockerHost);
-                System.setProperty("docker.client.strategy",
-                        "org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy");
-            }
-        }
-    }
-
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("mastodon_test")
-            .withUsername("mastodon")
-            .withPassword("mastodon");
-
-    private static final AtomicBoolean MIGRATED = new AtomicBoolean(false);
 
     @DynamicPropertySource
     static void registerDataSource(DynamicPropertyRegistry registry) {
-        if (!POSTGRES.isRunning()) {
-            POSTGRES.start();
-        }
-        if (MIGRATED.compareAndSet(false, true)) {
-            Flyway.configure()
-                    .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
-                    .locations("classpath:db/migration")
-                    .load()
-                    .migrate();
-        }
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES::getUsername);
-        registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("spring.datasource.driver-class-name", POSTGRES::getDriverClassName);
+        // Start and migrate the shared container
+        SharedPostgresContainer.startAndMigrate();
+        
+        // Register datasource properties
+        registry.add("spring.datasource.url", SharedPostgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", SharedPostgresContainer::getUsername);
+        registry.add("spring.datasource.password", SharedPostgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", SharedPostgresContainer::getDriverClassName);
     }
 
     @Value("${local.server.port}")
@@ -130,9 +90,11 @@ public abstract class BaseApiConformanceTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
+        // If body is already a String, use it directly; otherwise serialize
+        String jsonBody = body instanceof String ? (String) body : objectMapper.writeValueAsString(body);
         ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl(path),
-                new HttpEntity<>(objectMapper.writeValueAsString(body), headers),
+                new HttpEntity<>(jsonBody, headers),
                 String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -175,47 +137,57 @@ public abstract class BaseApiConformanceTest {
     
     // Create test account with user
     protected TestUser createTestAccount(String username, String email) {
-        Account account = new Account();
-        account.setUsername(username);
-        account.setAcct(username + "@local");
-        account.setDisplayName(username);
-        account.setNote("Test account for " + username);
-        account.setUrl("https://local/@" + username);
-        entityManager.persist(account);
+        return new TransactionTemplate(transactionManager).execute(txStatus -> {
+            Account account = new Account();
+            account.setUsername(username);
+            account.setAcct(username + "@local");
+            account.setDisplayName(username);
+            account.setNote("Test account for " + username);
+            account.setUrl("https://local/@" + username);
+            entityManager.persist(account);
+            entityManager.flush();
 
-        User user = new User();
-        user.setAccount(account);
-        user.setEmail(email);
-        user.setPasswordHash("hashed_password");
-        user.setLocale("en");
-        user.setLastSignInAt(Instant.now());
-        entityManager.persist(user);
+            User user = new User();
+            user.setAccount(account);
+            user.setEmail(email);
+            user.setPasswordHash("hashed_password");
+            user.setLocale("en");
+            user.setLastSignInAt(Instant.now());
+            entityManager.persist(user);
+            entityManager.flush();
 
-        return new TestUser(account, user);
+            return new TestUser(account, user);
+        });
     }
 
     // Create OAuth application
     protected Application createTestApplication(String name, String scopes) {
-        Application app = new Application();
-        app.setName(name);
-        app.setRedirectUri("urn:ietf:wg:oauth:2.0:oob");
-        app.setScopes(scopes);
-        app.setClientId("test_client_" + System.nanoTime());
-        app.setClientSecret("test_secret_" + System.nanoTime());
-        entityManager.persist(app);
-        return app;
+        return new TransactionTemplate(transactionManager).execute(txStatus -> {
+            Application app = new Application();
+            app.setName(name);
+            app.setRedirectUri("urn:ietf:wg:oauth:2.0:oob");
+            app.setScopes(scopes);
+            app.setClientId("test_client_" + System.nanoTime());
+            app.setClientSecret("test_secret_" + System.nanoTime());
+            entityManager.persist(app);
+            entityManager.flush();
+            return app;
+        });
     }
 
     // Create access token for account
     protected String createAccessToken(User user, Application app, String scopes) {
-        OAuthAccessToken token = new OAuthAccessToken();
-        token.setToken("test_token_" + System.nanoTime());
-        token.setUser(user);
-        token.setApplication(app);
-        token.setScopes(scopes);
-        token.setCreatedAt(Instant.now());
-        entityManager.persist(token);
-        return token.getToken();
+        return new TransactionTemplate(transactionManager).execute(txStatus -> {
+            OAuthAccessToken token = new OAuthAccessToken();
+            token.setToken("test_token_" + System.nanoTime());
+            token.setUser(user);
+            token.setApplication(app);
+            token.setScopes(scopes);
+            token.setCreatedAt(Instant.now());
+            entityManager.persist(token);
+            entityManager.flush();
+            return token.getToken();
+        });
     }
 
     // Clear all tables

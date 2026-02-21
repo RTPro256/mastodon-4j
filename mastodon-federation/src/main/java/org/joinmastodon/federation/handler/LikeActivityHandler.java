@@ -43,8 +43,6 @@ public class LikeActivityHandler implements ActivityHandler {
             return;
         }
 
-        String activityId = activityJson.has("id") ? activityJson.get("id").asText() : null;
-
         log.info("Processing Like from {}: {}", actor.getAcct(), objectUrl);
 
         // Find the status

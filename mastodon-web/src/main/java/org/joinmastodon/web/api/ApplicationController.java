@@ -6,8 +6,13 @@ import org.joinmastodon.core.entity.Application;
 import org.joinmastodon.core.service.ApplicationService;
 import org.joinmastodon.web.api.dto.ApplicationDto;
 import org.joinmastodon.web.api.dto.request.ApplicationCreateRequest;
+import org.joinmastodon.web.auth.AuthenticatedPrincipal;
 import org.joinmastodon.web.auth.ScopeUtil;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +40,20 @@ public class ApplicationController {
         application.setClientSecret(generateSecret());
         Application saved = applicationService.save(application);
         return ApiMapper.toApplicationDto(saved);
+    }
+
+    @GetMapping("/verify_credentials")
+    public ResponseEntity<ApplicationDto> verifyCredentials() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedPrincipal principal)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (principal.applicationId() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return applicationService.findById(principal.applicationId())
+                .map(app -> ResponseEntity.ok(ApiMapper.toApplicationDto(app)))
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
     private String generateId() {
